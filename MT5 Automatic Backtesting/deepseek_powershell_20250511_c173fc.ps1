@@ -1,6 +1,6 @@
 # Add to initialization
-SET notificationEmail TO "your-email@example.com"
-SET notificationPhone TO "+1234567890"  # For SMS alerts
+SET notificationEmail TO "godfreykiggundu23@yahoo.com"
+SET notificationPhone TO "+256774164694"  # For SMS alerts
 SET lastNotificationTime TO 0
 SET notificationCooldown TO 3600  # 1 hour between notifications
 
@@ -17,7 +17,7 @@ FUNCTION SendNotification
     
     # Email notification
     TRY
-        RUN PROGRAM "powershell.exe -Command \"Send-MailMessage -From 'mt5-ec2@example.com' -To '%notificationEmail%' -Subject '%subject%' -Body '%message%' -SmtpServer 'smtp.example.com'\"" WAIT FOR COMPLETION No
+        RUN PROGRAM "powershell.exe -Command \"Send-MailMessage -From 'godfreykiggundu@hotmail.com' -To '%notificationEmail%' -Subject '%subject%' -Body '%message%' -SmtpServer 'smtp.example.com'\"" WAIT FOR COMPLETION No
         APPEND TEXT "Sent email notification: %subject%\r\n" TO FILE "%logFilePath%"
     CATCH
         APPEND TEXT "Failed to send email notification: %ERROR MESSAGE%\r\n" TO FILE "%logFilePath%"
