@@ -47,11 +47,6 @@ FUNCTION ComprehensiveMonitor
         IF %diskUsage% > %maxDiskUsage%
             APPEND TEXT "Warning: High disk usage detected (%diskUsage%%)\r\n" TO FILE "%logFilePath%"
             SET systemHealthy TO false
-            
-            # Clean up old reports if disk is full
-            IF %diskUsage% > 95
-                RUN PROGRAM "powershell.exe -Command \"Get-ChildItem -Path '%reportPath%' -Filter *.xml | Sort-Object LastWriteTime | Select-Object -First 10 | Remove-Item -Force\"" WAIT FOR COMPLETION Yes
-                APPEND TEXT "Deleted oldest 10 reports to free up space\r\n" TO FILE "%logFilePath%"
             END IF
         END IF
     CATCH

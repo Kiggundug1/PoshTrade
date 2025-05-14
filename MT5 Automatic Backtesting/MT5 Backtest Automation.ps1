@@ -2092,8 +2092,3 @@ catch {
 
 # End of script
 LogMessage -level "INFO" -message "Script execution completed"
-
-
-
-
-
