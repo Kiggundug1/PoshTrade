@@ -1,0 +1,1836 @@
+# Initialize variables with enhanced error handling
+ONERROR
+    # Default configuration values - will be overridden by config file if present
+    SET defaultConfig TO {
+        "mt5Path": "C:\Program Files\MetaTrader 5 EXNESS\terminal64.exe",
+        "eaPath": "C:\Users\kigundu\AppData\Roaming\MetaQuotes\Terminal\53785E099C927DB68A545C249CDBCE06\MQL5\Experts\Custom EAs\Moving Average",
+        "reportPath": "D:\FOREX\FOREX DOCUMENTS\MT5 STRATEGY TESTER REPORTS\Reports",
+        "startDate": "2019.01.01",
+        "endDate": "2024.12.31",
+        "reportCounter": 1,
+        "maxWaitTimeForTest": 180,
+        "initialLoadTime": 15,
+        "maxRetries": 3,
+        "skipOnError": true,
+        "autoRestartOnFailure": true,
+        "maxConsecutiveFailures": 5,
+        "adaptiveWaitEnabled": true,
+        "baseWaitMultiplier": 1.0,
+        "maxAdaptiveWaitMultiplier": 5,
+        "systemLoadCheckInterval": 300,
+        "lowMemoryThreshold": 200,
+        "verboseLogging": false,
+        "logProgressInterval": 10,
+        "detailedSystemCheckInterval": 600,
+        "logFilePath": "D:\FOREX\FOREX DOCUMENTS\MT5 STRATEGY TESTER REPORTS\automation_log.json",
+        "errorScreenshotsPath": "D:\FOREX\FOREX DOCUMENTS\MT5 STRATEGY TESTER REPORTS\Reports\errors",
+        "checkpointFile": "D:\FOREX\FOREX DOCUMENTS\MT5 STRATEGY TESTER REPORTS\Reports\checkpoint.json",
+        "configFilePath": "D:\FOREX\FOREX DOCUMENTS\MT5 STRATEGY TESTER REPORTS\Reports\backtest_config.json",
+        "performanceHistoryFile": "D:\FOREX\FOREX DOCUMENTS\MT5 STRATEGY TESTER REPORTS\Reports\performance_history.json",
+        "retryBackoffMultiplier": 1.5,
+        "maxRetryWaitTime": 60
+    }
+    
+    # Initialize variables with default values
+    SET mt5Path TO "%defaultConfig.mt5Path%"
+    SET eaPath TO "%defaultConfig.eaPath%"
+    SET reportPath TO "%defaultConfig.reportPath%"
+    SET startDate TO "%defaultConfig.startDate%"
+    SET endDate TO "%defaultConfig.endDate%"
+    SET reportCounter TO %defaultConfig.reportCounter%
+    SET maxWaitTimeForTest TO %defaultConfig.maxWaitTimeForTest%
+    SET initialLoadTime TO %defaultConfig.initialLoadTime%
+    SET maxRetries TO %defaultConfig.maxRetries%
+    SET skipOnError TO %defaultConfig.skipOnError%
+    SET autoRestartOnFailure TO %defaultConfig.autoRestartOnFailure%
+    SET maxConsecutiveFailures TO %defaultConfig.maxConsecutiveFailures%
+    SET consecutiveFailures TO 0
+    SET adaptiveWaitEnabled TO %defaultConfig.adaptiveWaitEnabled%
+    SET baseWaitMultiplier TO %defaultConfig.baseWaitMultiplier%
+    SET maxAdaptiveWaitMultiplier TO %defaultConfig.maxAdaptiveWaitMultiplier%
+    SET currentAdaptiveMultiplier TO 1.0
+    SET systemLoadCheckInterval TO %defaultConfig.systemLoadCheckInterval%
+    SET lastSystemLoadCheck TO 0
+    SET lowMemoryThreshold TO %defaultConfig.lowMemoryThreshold%
+    SET availableMemory TO 1000
+    SET verboseLogging TO %defaultConfig.verboseLogging%
+    SET logProgressInterval TO %defaultConfig.logProgressInterval%
+    SET detailedSystemCheckInterval TO %defaultConfig.detailedSystemCheckInterval%
+    SET logFilePath TO "%defaultConfig.logFilePath%"
+    SET errorScreenshotsPath TO "%defaultConfig.errorScreenshotsPath%"
+    SET checkpointFile TO "%defaultConfig.checkpointFile%"
+    SET eaIndex TO 0
+    SET currencyIndex TO 0
+    SET timeframeIndex TO 0
+    SET resumeFromCheckpoint TO false
+    SET configFilePath TO "%defaultConfig.configFilePath%"
+    SET performanceHistoryFile TO "%defaultConfig.performanceHistoryFile%"
+    SET retryBackoffMultiplier TO %defaultConfig.retryBackoffMultiplier%
+    SET maxRetryWaitTime TO %defaultConfig.maxRetryWaitTime%
+    
+    # Check if paths exist
+    IF FOLDER NOT EXISTS "%mt5Path%"
+        THROW "MetaTrader 5 path does not exist: %mt5Path%"
+    END IF
+    
+    IF FOLDER NOT EXISTS "%eaPath%"
+        THROW "EA path does not exist: %eaPath%"
+    END IF
+    
+    IF FOLDER NOT EXISTS "%reportPath%"
+        # Create reports folder if it doesn't exist
+        CREATE FOLDER "%reportPath%"
+    END IF
+    
+    IF FOLDER NOT EXISTS "%errorScreenshotsPath%"
+        CREATE FOLDER "%errorScreenshotsPath%"
+    END IF
+    
+    # Initialize performance history data structure
+    CREATE DICTIONARY performanceHistory
+    IF FILE EXISTS "%performanceHistoryFile%"
+        ONERROR
+            READ FILE "%performanceHistoryFile%" STORE RESULT IN historyData
+            SET performanceHistory TO PARSE JSON "%historyData%"
+        ON ERROR
+            # If file exists but can't be parsed, initialize empty
+            APPEND TEXT "Error reading performance history file. Initializing new history.\r\n" TO FILE "%logFilePath%"
+        END ONERROR
+    END IF
+    
+    # Log start of execution with structured format
+    SET logEntry TO {
+        "timestamp": "%CURRENT DATE% %CURRENT TIME%",
+        "level": "INFO",
+        "message": "Started execution",
+        "details": {
+            "mt5Path": "%mt5Path%",
+            "eaPath": "%eaPath%",
+            "reportPath": "%reportPath%"
+        }
+    }
+    APPEND TEXT "%logEntry TO JSON%\r\n" TO FILE "%logFilePath%"
+ON ERROR
+    # Create structured error log
+    SET errorLog TO {
+        "timestamp": "%CURRENT DATE% %CURRENT TIME%",
+        "level": "ERROR",
+        "message": "Error during initialization",
+        "error": "%ERROR MESSAGE%"
+    }
+    APPEND TEXT "%errorLog TO JSON%\r\n" TO FILE "%logFilePath%"
+    
+    DISPLAY MESSAGE "Error during initialization: %ERROR MESSAGE%"
+    
+    IF %skipOnError%
+        SET continueLog TO {
+            "timestamp": "%CURRENT DATE% %CURRENT TIME%",
+            "level": "WARN",
+            "message": "Continuing despite initialization error"
+        }
+        APPEND TEXT "%continueLog TO JSON%\r\n" TO FILE "%logFilePath%"
+    ELSE
+        EXIT FLOW
+    END IF
+END ONERROR
+
+# Function to log messages in structured format
+FUNCTION LogMessage
+    PARAMETERS level message details
+    
+    SET logEntry TO {
+        "timestamp": "%CURRENT DATE% %CURRENT TIME%",
+        "level": "%level%",
+        "message": "%message%"
+    }
+    
+    # Add details if provided
+    IF "%details%" != ""
+        SET logEntry.details TO %details%
+    END IF
+    
+    # Only log if verbose mode is on or if it's an important message
+    IF %verboseLogging% OR "%level%" = "ERROR" OR "%level%" = "WARN" OR "%level%" = "INFO"
+        APPEND TEXT "%logEntry TO JSON%\r\n" TO FILE "%logFilePath%"
+    END IF
+END FUNCTION
+
+# Function to verify and set a value only if needed
+FUNCTION VerifyAndSetValue
+    PARAMETERS fieldName currentValue targetValue
+    
+    IF "%currentValue%" != "%targetValue%"
+        CALL LogMessage WITH PARAMETERS "DEBUG" "Changing %fieldName% from '%currentValue%' to '%targetValue%'" ""
+        RETURN false  # Value needs to be set
+    ELSE
+        CALL LogMessage WITH PARAMETERS "DEBUG" "%fieldName% already set to '%targetValue%', skipping" ""
+        RETURN true  # Value already correct
+    END IF
+END FUNCTION
+
+# Function to load configuration with improved JSON support
+FUNCTION LoadConfiguration
+    IF FILE EXISTS "%configFilePath%"
+        ONERROR
+            CALL LogMessage WITH PARAMETERS "INFO" "Loading configuration from %configFilePath%" ""
+            READ FILE "%configFilePath%" STORE RESULT IN configData
+            
+            # Try to parse as JSON first
+            ONERROR
+                SET config TO PARSE JSON "%configData%"
+                
+                # Apply configuration from JSON object
+                IF PROPERTY "mt5Path" EXISTS IN config
+                    SET mt5Path TO "%config.mt5Path%"
+                END IF
+                
+                IF PROPERTY "eaPath" EXISTS IN config
+                    SET eaPath TO "%config.eaPath%"
+                END IF
+                
+                IF PROPERTY "reportPath" EXISTS IN config
+                    SET reportPath TO "%config.reportPath%"
+                END IF
+                
+                IF PROPERTY "startDate" EXISTS IN config
+                    SET startDate TO "%config.startDate%"
+                END IF
+                
+                IF PROPERTY "endDate" EXISTS IN config
+                    SET endDate TO "%config.endDate%"
+                END IF
+                
+                IF PROPERTY "maxWaitTimeForTest" EXISTS IN config
+                    SET maxWaitTimeForTest TO %config.maxWaitTimeForTest%
+                END IF
+                
+                IF PROPERTY "initialLoadTime" EXISTS IN config
+                    SET initialLoadTime TO %config.initialLoadTime%
+                END IF
+                
+                IF PROPERTY "maxRetries" EXISTS IN config
+                    SET maxRetries TO %config.maxRetries%
+                END IF
+                
+                IF PROPERTY "skipOnError" EXISTS IN config
+                    SET skipOnError TO %config.skipOnError%
+                END IF
+                
+                IF PROPERTY "autoRestartOnFailure" EXISTS IN config
+                    SET autoRestartOnFailure TO %config.autoRestartOnFailure%
+                END IF
+                
+                IF PROPERTY "maxConsecutiveFailures" EXISTS IN config
+                    SET maxConsecutiveFailures TO %config.maxConsecutiveFailures%
+                END IF
+                
+                IF PROPERTY "adaptiveWaitEnabled" EXISTS IN config
+                    SET adaptiveWaitEnabled TO %config.adaptiveWaitEnabled%
+                END IF
+                
+                IF PROPERTY "baseWaitMultiplier" EXISTS IN config
+                    SET baseWaitMultiplier TO %config.baseWaitMultiplier%
+                END IF
+                
+                IF PROPERTY "maxAdaptiveWaitMultiplier" EXISTS IN config
+                    SET maxAdaptiveWaitMultiplier TO %config.maxAdaptiveWaitMultiplier%
+                END IF
+                
+                IF PROPERTY "systemLoadCheckInterval" EXISTS IN config
+                    SET systemLoadCheckInterval TO %config.systemLoadCheckInterval%
+                END IF
+                
+                IF PROPERTY "lowMemoryThreshold" EXISTS IN config
+                    SET lowMemoryThreshold TO %config.lowMemoryThreshold%
+                END IF
+                
+                IF PROPERTY "verboseLogging" EXISTS IN config
+                    SET verboseLogging TO %config.verboseLogging%
+                END IF
+                
+                IF PROPERTY "logProgressInterval" EXISTS IN config
+                    SET logProgressInterval TO %config.logProgressInterval%
+                END IF
+                
+                IF PROPERTY "detailedSystemCheckInterval" EXISTS IN config
+                    SET detailedSystemCheckInterval TO %config.detailedSystemCheckInterval%
+                END IF
+                
+                IF PROPERTY "retryBackoffMultiplier" EXISTS IN config
+                    SET retryBackoffMultiplier TO %config.retryBackoffMultiplier%
+                END IF
+                
+                IF PROPERTY "maxRetryWaitTime" EXISTS IN config
+                    SET maxRetryWaitTime TO %config.maxRetryWaitTime%
+                END IF
+                
+                CALL LogMessage WITH PARAMETERS "INFO" "Configuration loaded successfully from JSON" ""
+            ON ERROR
+                # Fallback to legacy text format parsing
+                CALL LogMessage WITH PARAMETERS "WARN" "Failed to parse JSON config, falling back to text format" ""
+                
+                # Parse config data line by line
+                SPLIT TEXT "%configData%" BY "\r\n" STORE RESULT IN configLines
+                
+                FOR EACH configLine IN %configLines%
+                    # Skip empty lines and comments
+                    IF "%configLine%" = "" OR STARTS WITH "%configLine%" "#"
+                        CONTINUE
+                    END IF
+                    
+                    # Extract key and value
+                    SPLIT TEXT "%configLine%" BY "=" STORE RESULT IN keyValue
+                    IF COUNT OF LIST keyValue = 2
+                        SET configKey TO ITEM 1 FROM LIST keyValue
+                        SET configValue TO ITEM 2 FROM LIST keyValue
+                        
+                        # Trim whitespace
+                        SET configKey TO TRIM "%configKey%"
+                        SET configValue TO TRIM "%configValue%"
+                        
+                        # Apply configuration based on key
+                        IF "%configKey%" = "mt5Path"
+                            SET mt5Path TO "%configValue%"
+                        ELSIF "%configKey%" = "eaPath"
+                            SET eaPath TO "%configValue%"
+                        ELSIF "%configKey%" = "reportPath"
+                            SET reportPath TO "%configValue%"
+                        ELSIF "%configKey%" = "startDate"
+                            SET startDate TO "%configValue%"
+                        ELSIF "%configKey%" = "endDate"
+                            SET endDate TO "%configValue%"
+                        ELSIF "%configKey%" = "maxWaitTimeForTest"
+                            SET maxWaitTimeForTest TO %configValue%
+                        ELSIF "%configKey%" = "initialLoadTime"
+                            SET initialLoadTime TO %configValue%
+                        ELSIF "%configKey%" = "maxRetries"
+                            SET maxRetries TO %configValue%
+                        ELSIF "%configKey%" = "skipOnError"
+                            SET skipOnError TO %configValue%
+                        ELSIF "%configKey%" = "autoRestartOnFailure"
+                            SET autoRestartOnFailure TO %configValue%
+                        ELSIF "%configKey%" = "maxConsecutiveFailures"
+                            SET maxConsecutiveFailures TO %configValue%
+                        ELSIF "%configKey%" = "adaptiveWaitEnabled"
+                            SET adaptiveWaitEnabled TO %configValue%
+                        ELSIF "%configKey%" = "baseWaitMultiplier"
+                            SET baseWaitMultiplier TO %configValue%
+                        ELSIF "%configKey%" = "maxAdaptiveWaitMultiplier"
+                            SET maxAdaptiveWaitMultiplier TO %configValue%
+                        ELSIF "%configKey%" = "systemLoadCheckInterval"
+                            SET systemLoadCheckInterval TO %configValue%
+                        ELSIF "%configKey%" = "lowMemoryThreshold"
+                            SET lowMemoryThreshold TO %configValue%
+                        ELSIF "%configKey%" = "verboseLogging"
+                            SET verboseLogging TO %configValue%
+                        ELSIF "%configKey%" = "logProgressInterval"
+                            SET logProgressInterval TO %configValue%
+                        ELSIF "%configKey%" = "detailedSystemCheckInterval"
+                            SET detailedSystemCheckInterval TO %configValue%
+                        ELSIF "%configKey%" = "retryBackoffMultiplier"
+                            SET retryBackoffMultiplier TO %configValue%
+                                                ELSIF "%configKey%" = "maxRetryWaitTime"
+                            SET maxRetryWaitTime TO %configValue%
+                        END IF
+                        
+                        CALL LogMessage WITH PARAMETERS "DEBUG" "Config: %configKey% = %configValue%" ""
+                    END IF
+                END FOR
+                
+                CALL LogMessage WITH PARAMETERS "INFO" "Configuration loaded successfully from text format" ""
+            END ONERROR
+        ON ERROR
+            CALL LogMessage WITH PARAMETERS "ERROR" "Error loading configuration: %ERROR MESSAGE%. Using default settings." ""
+        END ONERROR
+    ELSE
+        CALL LogMessage WITH PARAMETERS "INFO" "No configuration file found at %configFilePath%. Using default settings." ""
+    END IF
+END FUNCTION
+
+# Define adaptive wait function with exponential backoff for retries
+FUNCTION AdaptiveWait
+    PARAMETERS waitTime isRetry retryCount
+    
+    # Calculate wait time based on parameters
+    IF %isRetry%
+        # Use exponential backoff for retries
+        SET backoffFactor TO MIN(%maxRetryWaitTime% / %waitTime%, POWER(%retryBackoffMultiplier%, %retryCount%))
+        SET adjustedWaitTime TO %waitTime% * %backoffFactor%
+        
+        # Cap at maximum retry wait time
+        SET adjustedWaitTime TO MIN(%adjustedWaitTime%, %maxRetryWaitTime%)
+    ELSIF %adaptiveWaitEnabled%
+        # Use adaptive wait for normal operations
+        SET adjustedWaitTime TO %waitTime% * %currentAdaptiveMultiplier%
+    ELSE
+        SET adjustedWaitTime TO %waitTime%
+    END IF
+    
+    # Log wait time if it's significantly adjusted
+    IF %adjustedWaitTime% > %waitTime% * 1.5 AND %verboseLogging%
+        CALL LogMessage WITH PARAMETERS "DEBUG" "Adjusted wait time from %waitTime% to %adjustedWaitTime% seconds" ""
+    END IF
+    
+    WAIT %adjustedWaitTime%
+END FUNCTION
+
+# Simplified version for backward compatibility
+FUNCTION LegacyAdaptiveWait
+    PARAMETERS waitTime
+    
+    CALL AdaptiveWait WITH PARAMETERS %waitTime% false 0
+END FUNCTION
+
+# Function to capture error state with screenshots
+FUNCTION CaptureErrorState
+    PARAMETERS errorContext
+    
+    ONERROR
+        # Format timestamp for filename
+        SET timestamp TO REPLACE ":" WITH "-" IN "%CURRENT TIME%"
+        SET timestamp TO REPLACE " " WITH "_" IN "%timestamp%"
+        SET timestamp TO REPLACE "/" WITH "-" IN "%CURRENT DATE%_%timestamp%"
+        
+        # Take screenshot of error state
+        CAPTURE SCREENSHOT "%errorScreenshotsPath%\error_%errorContext%_%timestamp%.png"
+        
+        SET screenshotDetails TO {
+            "filename": "error_%errorContext%_%timestamp%.png",
+            "context": "%errorContext%",
+            "timestamp": "%CURRENT DATE% %CURRENT TIME%"
+        }
+        
+        CALL LogMessage WITH PARAMETERS "INFO" "Error screenshot saved" "%screenshotDetails%"
+        
+        # Try to save any partial results if in Strategy Tester
+        IF WINDOW "Strategy Tester" EXISTS
+            SEND KEYS Ctrl+s WINDOW "Strategy Tester"
+            CALL LegacyAdaptiveWait WITH PARAMETERS 2
+            
+            # Set partial results filename
+            SET partialFileName TO "partial_%errorContext%_%timestamp%"
+            SEND KEYS "%reportPath%\%partialFileName%" WINDOW "Save As"
+            CALL LegacyAdaptiveWait WITH PARAMETERS 1
+            SEND KEYS Enter WINDOW "Save As"
+            CALL LegacyAdaptiveWait WITH PARAMETERS 2
+            
+            SET partialResultDetails TO {
+                "filename": "%partialFileName%",
+                "context": "%errorContext%",
+                "timestamp": "%CURRENT DATE% %CURRENT TIME%"
+            }
+            
+            CALL LogMessage WITH PARAMETERS "INFO" "Partial results saved" "%partialResultDetails%"
+        END IF
+    ON ERROR
+        CALL LogMessage WITH PARAMETERS "ERROR" "Failed to capture error state: %ERROR MESSAGE%" ""
+    END ONERROR
+END FUNCTION
+
+# Function to save checkpoint with improved JSON structure
+FUNCTION SaveCheckpoint
+    ONERROR
+        # Create checkpoint data as a proper JSON object
+        SET checkpointData TO {
+            "eaIndex": %eaIndex%,
+            "currencyIndex": %currencyIndex%,
+            "timeframeIndex": %timeframeIndex%,
+            "eaName": "%eaName%",
+            "currency": "%currency%",
+            "timeframe": "%timeframe%",
+            "reportCounter": %reportCounter%,
+            "timestamp": "%CURRENT DATE% %CURRENT TIME%"
+        }
+        
+        # Write checkpoint data to file
+        WRITE TEXT "%checkpointData TO JSON%" TO FILE "%checkpointFile%"
+        
+        SET checkpointDetails TO {
+            "eaName": "%eaName%",
+            "currency": "%currency%",
+            "timeframe": "%timeframe%"
+        }
+        
+        CALL LogMessage WITH PARAMETERS "INFO" "Checkpoint saved" "%checkpointDetails%"
+    ON ERROR
+        CALL LogMessage WITH PARAMETERS "ERROR" "Failed to save checkpoint: %ERROR MESSAGE%" ""
+    END ONERROR
+END FUNCTION
+
+# Function to perform memory cleanup
+FUNCTION PerformMemoryCleanup
+    # Only perform cleanup when memory is critically low
+    IF %availableMemory% < (%lowMemoryThreshold% / 2)
+        CALL LogMessage WITH PARAMETERS "WARN" "Performing memory cleanup due to low memory (%availableMemory% MB)" ""
+        
+        # Attempt to free memory by restarting Explorer (lightweight cleanup)
+        ONERROR
+            KILL PROCESS "explorer.exe" WAIT FOR COMPLETION Yes
+            CALL LegacyAdaptiveWait WITH PARAMETERS 3
+            RUN PROGRAM "explorer.exe" WAIT FOR COMPLETION No
+            CALL LegacyAdaptiveWait WITH PARAMETERS 5
+            
+            # Check if cleanup helped
+            GET SYSTEM AVAILABLE MEMORY IN MB STORE RESULT IN newAvailableMemory
+            
+            SET cleanupDetails TO {
+                "beforeCleanup": %availableMemory%,
+                "afterCleanup": %newAvailableMemory%,
+                "improvement": %newAvailableMemory% - %availableMemory%
+            }
+            
+            CALL LogMessage WITH PARAMETERS "INFO" "Memory after cleanup: %newAvailableMemory% MB (was %availableMemory% MB)" "%cleanupDetails%"
+            SET availableMemory TO %newAvailableMemory%
+        ON ERROR
+            CALL LogMessage WITH PARAMETERS "ERROR" "Memory cleanup attempt failed: %ERROR MESSAGE%" ""
+        END ONERROR
+    END IF
+END FUNCTION
+
+# Enhanced system resource check function - optimized for long runs
+FUNCTION DetailedSystemCheck
+    # Get current time
+    SET currentTime TO %CURRENT TIME IN SECONDS%
+    
+    # Only check periodically to avoid overhead
+    IF %currentTime% - %lastSystemLoadCheck% >= %detailedSystemCheckInterval%
+        SET lastSystemLoadCheck TO %currentTime%
+        
+        # Get available memory
+        GET SYSTEM AVAILABLE MEMORY IN MB STORE RESULT IN availableMemory
+        
+        # Only get CPU usage if memory is concerning (reduces overhead)
+        IF %availableMemory% < %lowMemoryThreshold% * 2
+            ONERROR
+                GET CPU USAGE PERCENTAGE STORE RESULT IN cpuUsage
+            ON ERROR
+                SET cpuUsage TO 50  # Default value if can't get actual CPU usage
+            END ONERROR
+        ELSE
+            # Assume moderate CPU usage if memory is plentiful
+            SET cpuUsage TO 50
+        END IF
+        
+        # Create system metrics object
+        SET systemMetrics TO {
+            "cpuUsage": %cpuUsage%,
+            "availableMemory": %availableMemory%,
+            "adaptiveMultiplier": %currentAdaptiveMultiplier%
+        }
+        
+        # Only log if verbose logging is enabled or if system is under stress
+        IF %verboseLogging% OR %availableMemory% < %lowMemoryThreshold% * 2 OR %cpuUsage% > 80
+            CALL LogMessage WITH PARAMETERS "INFO" "System check" "%systemMetrics%"
+        END IF
+        
+        # Adjust wait multiplier based on system metrics
+        IF %cpuUsage% > 90 OR %availableMemory% < %lowMemoryThreshold%
+            # Critical system load - maximum wait times
+            SET currentAdaptiveMultiplier TO %maxAdaptiveWaitMultiplier%
+            CALL LogMessage WITH PARAMETERS "WARN" "Critical system load detected. Increasing wait times to maximum." "%systemMetrics%"
+            
+            # Check if we need to perform memory cleanup
+            CALL PerformMemoryCleanup
+        ELSIF %cpuUsage% > 70 OR %availableMemory% < %lowMemoryThreshold% * 2
+            # High system load - increase wait times
+            SET currentAdaptiveMultiplier TO MIN(%maxAdaptiveWaitMultiplier%, %currentAdaptiveMultiplier% * 1.5)
+            
+            # Only log if verbose logging is enabled
+            IF %verboseLogging%
+                CALL LogMessage WITH PARAMETERS "DEBUG" "High system load detected. Increasing wait multiplier to %currentAdaptiveMultiplier%" "%systemMetrics%"
+            END IF
+        ELSIF %cpuUsage% < 40 AND %availableMemory% > %lowMemoryThreshold% * 3
+            # Low system load - decrease wait times
+            SET currentAdaptiveMultiplier TO MAX(1.0, %currentAdaptiveMultiplier% * 0.8)
+            
+            # Only log if verbose logging is enabled
+            IF %verboseLogging%
+                CALL LogMessage WITH PARAMETERS "DEBUG" "Low system load detected. Decreasing wait multiplier to %currentAdaptiveMultiplier%" "%systemMetrics%"
+            END IF
+        ELSE
+            # Moderate system load - gradually normalize wait times
+            SET currentAdaptiveMultiplier TO MAX(1.0, %currentAdaptiveMultiplier% * 0.95)
+        END IF
+    END IF
+END FUNCTION
+
+# Function to estimate test duration with historical data
+FUNCTION EstimateTestDuration
+    PARAMETERS currency timeframe eaName
+    
+    # Check if we have historical data for this combination
+    SET historyKey TO "%eaName%_%currency%_%timeframe%"
+    
+    IF KEY "%historyKey%" EXISTS IN performanceHistory
+        # Use historical data with some adjustment for current system conditions
+        SET historicalDuration TO %performanceHistory[%historyKey%]%
+        SET estimatedDuration TO %historicalDuration% * %currentAdaptiveMultiplier%
+        
+        CALL LogMessage WITH PARAMETERS "DEBUG" "Using historical duration data for estimation" {
+            "historicalDuration": %historicalDuration%,
+            "estimatedDuration": %estimatedDuration%,
+            "multiplier": %currentAdaptiveMultiplier%
+        }
+    ELSE
+        # Base estimates on timeframe (in seconds)
+        IF "%timeframe%" = "M1"
+            SET baseDuration TO 300  # 5 minutes
+        ELSIF "%timeframe%" = "M5"
+            SET baseDuration TO 240  # 4 minutes
+        ELSIF "%timeframe%" = "M15"
+            SET baseDuration TO 180  # 3 minutes
+        ELSIF "%timeframe%" = "M30"
+            SET baseDuration TO 150  # 2.5 minutes
+        ELSIF "%timeframe%" = "H1"
+            SET baseDuration TO 120  # 2 minutes
+        ELSIF "%timeframe%" = "H4"
+            SET baseDuration TO 90   # 1.5 minutes
+        ELSIF "%timeframe%" = "D1"
+            SET baseDuration TO 60   # 1 minute
+        ELSE
+            SET baseDuration TO 180  # 3 minutes default
+        END IF
+        
+        # Adjust for currency pair complexity (some pairs take longer)
+        IF "%currency%" = "EURUSD" OR "%currency%" = "GBPUSD" OR "%currency%" = "USDJPY"
+            # Major pairs typically have more data and take longer
+            SET currencyMultiplier TO 1.2
+        ELSIF CONTAINS "%currency%" "JPY" OR CONTAINS "%currency%" "CHF"
+            # Cross pairs with JPY or CHF often take longer
+            SET currencyMultiplier TO 1.1
+        ELSE
+            SET currencyMultiplier TO 1.0
+        END IF
+        
+        # Adjust for date range
+        # Calculate approximate number of years in test
+        SET startYear TO EXTRACT REGEX "(\d{4})" FROM "%startDate%"
+        SET endYear TO EXTRACT REGEX "(\d{4})" FROM "%endDate%"
+        SET yearDifference TO %endYear% - %startYear% + 1
+        SET dateRangeMultiplier TO MAX(1.0, %yearDifference% / 3)  # Normalize to 3 years as baseline
+        
+        # Calculate final estimate
+        SET estimatedDuration TO %baseDuration% * %currencyMultiplier% * %dateRangeMultiplier%
+        
+        # Apply system load factor
+        SET estimatedDuration TO %estimatedDuration% * %currentAdaptiveMultiplier%
+        
+        # Log estimation factors
+        CALL LogMessage WITH PARAMETERS "DEBUG" "Estimated test duration based on parameters" {
+            "baseDuration": %baseDuration%,
+            "currencyMultiplier": %currencyMultiplier%,
+            "dateRangeMultiplier": %dateRangeMultiplier%,
+            "systemLoadMultiplier": %currentAdaptiveMultiplier%,
+            "estimatedDuration": %estimatedDuration%
+        }
+    END IF
+    
+    # Round to nearest 10 seconds
+    SET estimatedDuration TO ROUND(%estimatedDuration% / 10) * 10
+    
+    RETURN %estimatedDuration%
+END FUNCTION
+
+# Function to update performance history
+FUNCTION UpdatePerformanceHistory
+    PARAMETERS currency timeframe eaName actualDuration
+    
+    # Create key for this combination
+    SET historyKey TO "%eaName%_%currency%_%timeframe%"
+    
+    # Update or add the entry
+    IF KEY "%historyKey%" EXISTS IN performanceHistory
+        # Calculate weighted average (70% history, 30% new data)
+        SET historicalDuration TO %performanceHistory[%historyKey%]%
+        SET newDuration TO (%historicalDuration% * 0.7) + (%actualDuration% * 0.3)
+    ELSE
+        # First entry for this combination
+        SET newDuration TO %actualDuration%
+    END IF
+    
+    # Update the dictionary
+    SET performanceHistory[%historyKey%] TO %newDuration%
+    
+    # Save to file
+    ONERROR
+        WRITE TEXT "%performanceHistory TO JSON%" TO FILE "%performanceHistoryFile%"
+        CALL LogMessage WITH PARAMETERS "DEBUG" "Updated performance history" {
+            "combination": "%historyKey%",
+            "duration": %newDuration%
+        }
+    ON ERROR
+        CALL LogMessage WITH PARAMETERS "ERROR" "Failed to save performance history: %ERROR MESSAGE%" ""
+    END ONERROR
+END FUNCTION
+
+# UI Interaction Helper Functions
+# These functions encapsulate common UI interaction patterns
+
+# Function to navigate to a field by tabbing from home position
+FUNCTION NavigateToField
+    PARAMETERS fieldPosition windowName
+    
+    ONERROR
+        # Start from home position
+        SEND KEYS Home WINDOW "%windowName%"
+        CALL LegacyAdaptiveWait WITH PARAMETERS 0.5
+        
+                # Tab to the desired field
+        FOR counter FROM 1 TO %fieldPosition%
+            SEND KEYS Tab WINDOW "%windowName%"
+            CALL LegacyAdaptiveWait WITH PARAMETERS 0.2
+        END FOR
+        CALL LogMessage WITH PARAMETERS "DEBUG" "Navigated to field position %fieldPosition% in %windowName%" ""
+    ON ERROR
+        CALL LogMessage WITH PARAMETERS "ERROR" "Failed to navigate to field position %fieldPosition% in %windowName%: %ERROR MESSAGE%" ""
+        THROW "Navigation failed"
+    END ONERROR
+END FUNCTION
+
+# Function to enter a value in the current field
+FUNCTION EnterValue
+    PARAMETERS value windowName
+    
+    ONERROR
+        # Select all existing text
+        SEND KEYS Ctrl+a WINDOW "%windowName%"
+        CALL LegacyAdaptiveWait WITH PARAMETERS 0.5
+        
+        # Enter the new value
+        SEND KEYS "%value%" WINDOW "%windowName%"
+        CALL LegacyAdaptiveWait WITH PARAMETERS 0.5
+        
+        CALL LogMessage WITH PARAMETERS "DEBUG" "Entered value '%value%' in %windowName%" ""
+    ON ERROR
+        CALL LogMessage WITH PARAMETERS "ERROR" "Failed to enter value '%value%' in %windowName%: %ERROR MESSAGE%" ""
+        THROW "Value entry failed"
+    END ONERROR
+END FUNCTION
+
+# Function to select an item from a dropdown
+FUNCTION SelectDropdownItem
+    PARAMETERS item windowName
+    
+    ONERROR
+        # Open dropdown
+        SEND KEYS Alt+Down WINDOW "%windowName%"
+        CALL LegacyAdaptiveWait WITH PARAMETERS 0.5
+        
+        # Type to find the item
+        SEND KEYS "%item%" WINDOW "%windowName%"
+        CALL LegacyAdaptiveWait WITH PARAMETERS 0.5
+        
+        # Select the item
+        SEND KEYS Enter WINDOW "%windowName%"
+        CALL LegacyAdaptiveWait WITH PARAMETERS 0.5
+        
+        CALL LogMessage WITH PARAMETERS "DEBUG" "Selected item '%item%' from dropdown in %windowName%" ""
+    ON ERROR
+        CALL LogMessage WITH PARAMETERS "ERROR" "Failed to select item '%item%' from dropdown in %windowName%: %ERROR MESSAGE%" ""
+        THROW "Dropdown selection failed"
+    END ONERROR
+END FUNCTION
+
+# Function to configure a field with retry logic
+FUNCTION ConfigureField
+    PARAMETERS fieldPosition value windowName
+    
+    SET retryCount TO 0
+    WHILE %retryCount% < %maxRetries%
+        ONERROR
+            CALL NavigateToField WITH PARAMETERS %fieldPosition% "%windowName%"
+            CALL EnterValue WITH PARAMETERS "%value%" "%windowName%"
+            BREAK
+        ON ERROR
+            SET retryCount TO %retryCount% + 1
+            
+            IF %retryCount% >= %maxRetries%
+                CALL LogMessage WITH PARAMETERS "ERROR" "Failed to configure field at position %fieldPosition% after %maxRetries% attempts" ""
+                THROW "Field configuration failed"
+            ELSE
+                CALL LogMessage WITH PARAMETERS "WARN" "Retrying field configuration (attempt %retryCount%)" ""
+                CALL AdaptiveWait WITH PARAMETERS 2 true %retryCount%
+            END IF
+        END ONERROR
+    END WHILE
+END FUNCTION
+
+# Function to configure a dropdown field with retry logic
+FUNCTION ConfigureDropdownField
+    PARAMETERS fieldPosition item windowName
+    
+    SET retryCount TO 0
+    WHILE %retryCount% < %maxRetries%
+        ONERROR
+            CALL NavigateToField WITH PARAMETERS %fieldPosition% "%windowName%"
+            CALL SelectDropdownItem WITH PARAMETERS "%item%" "%windowName%"
+            BREAK
+        ON ERROR
+            SET retryCount TO %retryCount% + 1
+            
+            IF %retryCount% >= %maxRetries%
+                CALL LogMessage WITH PARAMETERS "ERROR" "Failed to configure dropdown field at position %fieldPosition% after %maxRetries% attempts" ""
+                THROW "Dropdown field configuration failed"
+            ELSE
+                CALL LogMessage WITH PARAMETERS "WARN" "Retrying dropdown field configuration (attempt %retryCount%)" ""
+                CALL AdaptiveWait WITH PARAMETERS 2 true %retryCount%
+            END IF
+        END ONERROR
+    END WHILE
+END FUNCTION
+
+# Define timeframes - updated to include all 21 MT5 timeframes
+CREATE LIST timeframes
+# Minute timeframes
+ADD ITEM "M1" TO LIST timeframes
+ADD ITEM "M2" TO LIST timeframes
+ADD ITEM "M3" TO LIST timeframes
+ADD ITEM "M4" TO LIST timeframes
+ADD ITEM "M5" TO LIST timeframes
+ADD ITEM "M6" TO LIST timeframes
+ADD ITEM "M10" TO LIST timeframes
+ADD ITEM "M12" TO LIST timeframes
+ADD ITEM "M15" TO LIST timeframes
+ADD ITEM "M20" TO LIST timeframes
+ADD ITEM "M30" TO LIST timeframes
+# Hour timeframes
+ADD ITEM "H1" TO LIST timeframes
+ADD ITEM "H2" TO LIST timeframes
+ADD ITEM "H3" TO LIST timeframes
+ADD ITEM "H4" TO LIST timeframes
+ADD ITEM "H6" TO LIST timeframes
+ADD ITEM "H8" TO LIST timeframes
+ADD ITEM "H12" TO LIST timeframes
+# Day and above timeframes
+ADD ITEM "D1" TO LIST timeframes
+ADD ITEM "W1" TO LIST timeframes
+ADD ITEM "MN1" TO LIST timeframes
+
+# Define currency pairs - full set for comprehensive testing
+CREATE LIST currencies
+# Majors
+ADD ITEM "EURUSD" TO LIST currencies
+ADD ITEM "GBPUSD" TO LIST currencies
+ADD ITEM "USDJPY" TO LIST currencies
+ADD ITEM "USDCHF" TO LIST currencies
+ADD ITEM "AUDUSD" TO LIST currencies
+ADD ITEM "USDCAD" TO LIST currencies
+ADD ITEM "NZDUSD" TO LIST currencies
+# Cross pairs
+ADD ITEM "EURGBP" TO LIST currencies
+ADD ITEM "EURJPY" TO LIST currencies
+ADD ITEM "GBPJPY" TO LIST currencies
+ADD ITEM "AUDJPY" TO LIST currencies
+ADD ITEM "CADJPY" TO LIST currencies
+ADD ITEM "CHFJPY" TO LIST currencies
+# Exotics
+ADD ITEM "EURTRY" TO LIST currencies
+ADD ITEM "USDZAR" TO LIST currencies
+ADD ITEM "USDMXN" TO LIST currencies
+ADD ITEM "USDSEK" TO LIST currencies
+ADD ITEM "USDNOK" TO LIST currencies
+
+# Get list of all EAs in the folder
+CREATE LIST eaList
+ONERROR
+    # Get all EA files in the directory
+    GET FILES IN FOLDER "%eaPath%" WITH PATTERN "*.ex5" RECURSIVE No STORE RESULT IN eaList
+    
+    # If no EAs found, add a default one to prevent errors
+    IF COUNT OF LIST eaList = 0
+        ADD ITEM "Moving Average" TO LIST eaList
+        CALL LogMessage WITH PARAMETERS "WARN" "No EA files found in %eaPath%, using default 'Moving Average'" ""
+    ELSE
+        CALL LogMessage WITH PARAMETERS "INFO" "Found %COUNT OF LIST eaList% EA files in %eaPath%" ""
+        
+        # Log all found EAs
+        FOR EACH eaFile IN %eaList%
+            # Extract just the EA name without path and extension
+            SET eaName TO EXTRACT FILENAME FROM PATH "%eaFile%"
+            SET eaName TO REPLACE ".ex5" WITH "" IN "%eaName%"
+            CALL LogMessage WITH PARAMETERS "DEBUG" "Found EA: %eaName%" ""
+        END FOR
+    END IF
+ON ERROR
+    CALL LogMessage WITH PARAMETERS "ERROR" "Error getting EA list: %ERROR MESSAGE%. Using default EA." ""
+    # Add default EA to prevent errors
+    ADD ITEM "Moving Average" TO LIST eaList
+END ONERROR
+
+# Load configuration if available
+CALL LoadConfiguration
+
+# Check for checkpoint file to resume from previous run
+IF FILE EXISTS "%checkpointFile%"
+    ONERROR
+        READ FILE "%checkpointFile%" STORE RESULT IN checkpointData
+        CALL LogMessage WITH PARAMETERS "INFO" "Found checkpoint file. Attempting to resume from last position..." ""
+        
+        # Try to parse as JSON first
+        ONERROR
+            SET checkpoint TO PARSE JSON "%checkpointData%"
+            SET eaIndex TO %checkpoint.eaIndex%
+            SET currencyIndex TO %checkpoint.currencyIndex%
+            SET timeframeIndex TO %checkpoint.timeframeIndex%
+            SET checkpointEaName TO "%checkpoint.eaName%"
+            SET checkpointCurrency TO "%checkpoint.currency%"
+            SET checkpointTimeframe TO "%checkpoint.timeframe%"
+            SET reportCounter TO %checkpoint.reportCounter%
+        ON ERROR
+            # Fallback to regex extraction if JSON parsing fails
+            SET eaIndex TO EXTRACT REGEX "\"eaIndex\":\s*(\d+)" FROM "%checkpointData%"
+            SET currencyIndex TO EXTRACT REGEX "\"currencyIndex\":\s*(\d+)" FROM "%checkpointData%"
+            SET timeframeIndex TO EXTRACT REGEX "\"timeframeIndex\":\s*(\d+)" FROM "%checkpointData%"
+            SET checkpointEaName TO EXTRACT REGEX "\"eaName\":\s*\"([^\"]+)\"" FROM "%checkpointData%"
+            SET checkpointCurrency TO EXTRACT REGEX "\"currency\":\s*\"([^\"]+)\"" FROM "%checkpointData%"
+            SET checkpointTimeframe TO EXTRACT REGEX "\"timeframe\":\s*\"([^\"]+)\"" FROM "%checkpointData%"
+            SET reportCounter TO EXTRACT REGEX "\"reportCounter\":\s*(\d+)" FROM "%checkpointData%"
+        END ONERROR
+        
+        SET resumeFromCheckpoint TO true
+        
+        SET checkpointDetails TO {
+            "eaName": "%checkpointEaName%",
+            "eaIndex": %eaIndex%,
+            "currency": "%checkpointCurrency%",
+            "currencyIndex": %currencyIndex%,
+            "timeframe": "%checkpointTimeframe%",
+            "timeframeIndex": %timeframeIndex%
+        }
+        
+        CALL LogMessage WITH PARAMETERS "INFO" "Resuming from checkpoint" "%checkpointDetails%"
+    ON ERROR
+        CALL LogMessage WITH PARAMETERS "ERROR" "Failed to parse checkpoint file: %ERROR MESSAGE%. Starting from beginning." ""
+        SET resumeFromCheckpoint TO false
+    END ONERROR
+END IF
+
+# Initial system resource check
+CALL DetailedSystemCheck
+
+# Launch MT5 with error handling and retry mechanism
+SET retryCount TO 0
+WHILE %retryCount% < %maxRetries%
+    ONERROR
+        CALL LogMessage WITH PARAMETERS "INFO" "Launching MetaTrader 5 (attempt %retryCount% + 1)" ""
+        RUN PROGRAM "%mt5Path%" WAIT FOR COMPLETION No
+        
+        # Wait for MT5 to fully load with verification
+        CALL LegacyAdaptiveWait WITH PARAMETERS %initialLoadTime%
+        
+        # Check if MT5 is running
+        IF WINDOW "MetaTrader 5" NOT EXISTS
+            THROW "MetaTrader 5 did not start properly"
+        END IF
+        
+        CALL LogMessage WITH PARAMETERS "INFO" "MetaTrader 5 launched successfully" ""
+        
+        # After MT5 is launched successfully, optimize it for backtesting
+        CALL OptimizeMT5ForBacktesting
+        
+        # Configure MT5 to use unlimited bars in chart
+        ONERROR
+            CALL LogMessage WITH PARAMETERS "INFO" "Configuring MT5 to use unlimited bars in chart" ""
+            
+            # Open MT5 settings dialog
+            SEND KEYS Alt+o WINDOW "MetaTrader 5"
+            CALL LegacyAdaptiveWait WITH PARAMETERS 2
+            
+            # Navigate to Charts tab (typically the 2nd tab)
+            CALL NavigateToField WITH PARAMETERS 1 "Settings"
+            SEND KEYS Right WINDOW "Settings"
+            CALL LegacyAdaptiveWait WITH PARAMETERS 1
+            
+            # Navigate to "Max bars in chart" field
+            # The exact number of tabs needed may vary based on MT5 version
+            CALL NavigateToField WITH PARAMETERS 8 "Settings"
+            
+            # Enter unlimited value (0)
+            CALL EnterValue WITH PARAMETERS "0" "Settings"
+            
+            # Navigate to OK button and click it
+            CALL NavigateToField WITH PARAMETERS 16 "Settings"
+            SEND KEYS Enter WINDOW "Settings"
+            CALL LegacyAdaptiveWait WITH PARAMETERS 2
+            
+            CALL LogMessage WITH PARAMETERS "INFO" "Successfully set maximum bars in chart to unlimited" ""
+        ON ERROR
+            CALL LogMessage WITH PARAMETERS "WARN" "Could not set maximum bars in chart to unlimited: %ERROR MESSAGE%" ""
+            
+            # Try alternative method if first method fails
+            ONERROR
+                # Alternative method using more direct keyboard navigation
+                SEND KEYS Alt WINDOW "MetaTrader 5"
+                CALL LegacyAdaptiveWait WITH PARAMETERS 1
+                SEND KEYS t WINDOW "MetaTrader 5"  # Tools menu
+                CALL LegacyAdaptiveWait WITH PARAMETERS 1
+                SEND KEYS o WINDOW "MetaTrader 5"  # Options
+                CALL LegacyAdaptiveWait WITH PARAMETERS 2
+                
+                # Navigate to Charts tab
+                SEND KEYS Right WINDOW "Settings"
+                CALL LegacyAdaptiveWait WITH PARAMETERS 1
+                
+                # Try to find the Max bars field by typing its name
+                SEND KEYS "Max bars" WINDOW "Settings"
+                CALL LegacyAdaptiveWait WITH PARAMETERS 1
+                SEND KEYS Tab WINDOW "Settings"
+                CALL LegacyAdaptiveWait WITH PARAMETERS 1
+                
+                # Enter 0 for unlimited
+                SEND KEYS "0" WINDOW "Settings"
+                CALL LegacyAdaptiveWait WITH PARAMETERS 1
+                
+                # Press OK
+                SEND KEYS Alt+o WINDOW "Settings"
+                CALL LegacyAdaptiveWait WITH PARAMETERS 2
+                
+                CALL LogMessage WITH PARAMETERS "INFO" "Successfully set maximum bars in chart to unlimited using alternative method" ""
+            ON ERROR
+                CALL LogMessage WITH PARAMETERS "WARN" "Failed to set maximum bars in chart to unlimited. Backtests may have limited historical data." ""
+                # Continue with the script despite this error
+            END ONERROR
+        END ONERROR
+        
+        BREAK
+    ON ERROR
+        SET retryCount TO %retryCount% + 1
+        CALL LogMessage WITH PARAMETERS "ERROR" "Error launching MetaTrader 5 (attempt %retryCount%): %ERROR MESSAGE%" ""
+        
+        # Capture error state
+        CALL CaptureErrorState WITH PARAMETERS "MT5Launch"
+        
+        IF %retryCount% >= %maxRetries%
+            IF %skipOnError%
+                CALL LogMessage WITH PARAMETERS "WARN" "Maximum retries reached. Continuing with script..." ""
+                BREAK
+            ELSE
+                DISPLAY MESSAGE "Failed to launch MetaTrader 5 after %maxRetries% attempts"
+                EXIT FLOW
+            END IF
+        ELSE
+            # Wait before retrying with exponential backoff
+            CALL AdaptiveWait WITH PARAMETERS 10 true %retryCount%
+        END IF
+    END ONERROR
+END WHILE
+
+# Create templates directory if it doesn't exist
+IF FOLDER NOT EXISTS "%reportPath%\templates"
+    CREATE FOLDER "%reportPath%\templates"
+END IF
+
+# Function to save current Strategy Tester settings
+FUNCTION SaveCurrentSettings
+    ONERROR
+        # Create a unique template name based on EA and currency
+        SET templateName TO "%eaName%_%currency%_settings"
+        
+        # Save settings as template
+        SEND KEYS Alt WINDOW "Strategy Tester"
+        CALL LegacyAdaptiveWait WITH PARAMETERS 1
+        SEND KEYS t WINDOW "Strategy Tester"  # Template menu
+        CALL LegacyAdaptiveWait WITH PARAMETERS 1
+        SEND KEYS s WINDOW "Strategy Tester"  # Save As option
+        CALL LegacyAdaptiveWait WITH PARAMETERS 2
+        
+        # Enter template name
+        SEND KEYS "%reportPath%\templates\%templateName%" WINDOW "Save As"
+        CALL LegacyAdaptiveWait WITH PARAMETERS 1
+        SEND KEYS Enter WINDOW "Save As"
+        CALL LegacyAdaptiveWait WITH PARAMETERS 2
+        
+        # Handle potential overwrite confirmation
+        IF WINDOW "Confirm" EXISTS
+            SEND KEYS y WINDOW "Confirm"
+            CALL LegacyAdaptiveWait WITH PARAMETERS 2
+        END IF
+        
+        CALL LogMessage WITH PARAMETERS "INFO" "Settings saved as template: %templateName%" ""
+    ON ERROR
+        CALL LogMessage WITH PARAMETERS "ERROR" "Failed to save settings template: %ERROR MESSAGE%" ""
+    END ONERROR
+END FUNCTION
+
+# Function to load saved Strategy Tester settings
+FUNCTION LoadSettings
+    ONERROR
+        # Use the same template name format as in SaveCurrentSettings
+        SET templateName TO "%eaName%_%currency%_settings"
+        
+        # Load settings from template
+        SEND KEYS Alt WINDOW "Strategy Tester"
+        CALL LegacyAdaptiveWait WITH PARAMETERS 1
+        SEND KEYS t WINDOW "Strategy Tester"  # Template menu
+        CALL LegacyAdaptiveWait WITH PARAMETERS 1
+        SEND KEYS l WINDOW "Strategy Tester"  # Load option
+        CALL LegacyAdaptiveWait WITH PARAMETERS 2
+        
+        # Navigate to and select the template
+        SEND KEYS "%templateName%" WINDOW "Open"
+        CALL LegacyAdaptiveWait WITH PARAMETERS 1
+        SEND KEYS Enter WINDOW "Open"
+        CALL LegacyAdaptiveWait WITH PARAMETERS 2
+        
+        CALL LogMessage WITH PARAMETERS "INFO" "Settings loaded from template: %templateName%" ""
+    ON ERROR
+        CALL LogMessage WITH PARAMETERS "WARN" "Failed to load settings template: %ERROR MESSAGE%. Using default settings." ""
+    END ONERROR
+END FUNCTION
+
+# Function to optimize MT5 settings for backtesting
+FUNCTION OptimizeMT5ForBacktesting
+    ONERROR
+        CALL LogMessage WITH PARAMETERS "INFO" "Optimizing MT5 settings for backtesting" ""
+        
+        # Disable chart updates during testing
+        SEND KEYS Alt+o WINDOW "MetaTrader 5"
+        CALL LegacyAdaptiveWait WITH PARAMETERS 2
+        
+        # Navigate to Strategy Tester tab
+        CALL NavigateToField WITH PARAMETERS 4 "Settings"
+        SEND KEYS Right Right Right WINDOW "Settings"
+        CALL LegacyAdaptiveWait WITH PARAMETERS 1
+        
+        # Disable visual mode by default
+        CALL NavigateToField WITH PARAMETERS 4 "Settings"
+        SEND KEYS Space WINDOW "Settings"
+        CALL LegacyAdaptiveWait WITH PARAMETERS 1
+        
+        # Increase max bars in history for more accurate testing
+        CALL NavigateToField WITH PARAMETERS 6 "Settings"
+        CALL EnterValue WITH PARAMETERS "0" "Settings"  # 0 means unlimited
+        
+        # Optimize memory usage settings
+        CALL NavigateToField WITH PARAMETERS 9 "Settings"
+        CALL EnterValue WITH PARAMETERS "8192" "Settings"  # Increase memory buffer
+        
+        # Save settings
+        SEND KEYS Alt+o WINDOW "Settings"
+        CALL LegacyAdaptiveWait WITH PARAMETERS 2
+        
+        CALL LogMessage WITH PARAMETERS "INFO" "MT5 settings optimized for backtesting" ""
+    ON ERROR
+        CALL LogMessage WITH PARAMETERS "WARN" "Failed to optimize MT5 settings: %ERROR MESSAGE%" ""
+        # Continue despite failure - not critical
+    END ONERROR
+END FUNCTION
+
+# Loop through each EA
+FOR EACH eaFile IN %eaList% WITH INDEX eaIndex
+    # Skip to checkpoint position if resuming
+    IF %resumeFromCheckpoint% AND %eaIndex% < %eaIndex%
+        CONTINUE
+    END IF
+    
+    # Extract just the EA name without path and extension
+    SET eaName TO EXTRACT FILENAME FROM PATH "%eaFile%"
+    SET eaName TO REPLACE ".ex5" WITH "" IN "%eaName%"
+    
+    CALL LogMessage WITH PARAMETERS "INFO" "Starting tests for EA: %eaName%" ""
+    
+    # Loop through each currency pair
+    FOR EACH currency IN %currencies% WITH INDEX currencyIndex
+        # Skip to checkpoint position if resuming
+        IF %resumeFromCheckpoint% AND %eaIndex% = %eaIndex% AND %currencyIndex% < %currencyIndex%
+            CONTINUE
+        END IF
+        
+        ONERROR
+            CALL LogMessage WITH PARAMETERS "INFO" "Starting tests for EA: %eaName% on %currency%" ""
+            
+            # Check system resources before starting a new test
+            CALL DetailedSystemCheck
+            
+            # Open Strategy Tester using hotkey with retry
+            SET retryCount TO 0
+            WHILE %retryCount% < %maxRetries%
+                ONERROR
+                    # Primary method: Alt+T
+                    SEND KEYS Alt+t WINDOW "MetaTrader 5"
+                    CALL LegacyAdaptiveWait WITH PARAMETERS 3
+                    
+                    # Check if Strategy Tester opened
+                    IF WINDOW "Strategy Tester" NOT EXISTS AND WINDOW "Tester" NOT EXISTS
+                        # Secondary method: Ctrl+R
+                        SEND KEYS Ctrl+r WINDOW "MetaTrader 5"
+                        CALL LegacyAdaptiveWait WITH PARAMETERS 3
+                        
+                        # Tertiary method: Use View menu
+                        IF WINDOW "Strategy Tester" NOT EXISTS AND WINDOW "Tester" NOT EXISTS
+                            SEND KEYS Alt WINDOW "MetaTrader 5"
+                            CALL LegacyAdaptiveWait WITH PARAMETERS 1
+                            SEND KEYS v WINDOW "MetaTrader 5"
+                            CALL LegacyAdaptiveWait WITH PARAMETERS 1
+                            SEND KEYS t WINDOW "MetaTrader 5"
+                            CALL LegacyAdaptiveWait WITH PARAMETERS 3
+                            
+                            # Check again
+                            IF WINDOW "Strategy Tester" NOT EXISTS AND WINDOW "Tester" NOT EXISTS
+                                THROW "Strategy Tester window did not open"
+                            END IF
+                        END IF
+                    END IF
+                    
+                    BREAK
+                ON ERROR
+                    SET retryCount TO %retryCount% + 1
+                    CALL LogMessage WITH PARAMETERS "ERROR" "Failed to open Strategy Tester (attempt %retryCount%): %ERROR MESSAGE%" ""
+                    
+                    # Capture error state
+                    CALL CaptureErrorState WITH PARAMETERS "OpenTester"
+                    
+                    IF %retryCount% >= %maxRetries%
+                        THROW "Failed to open Strategy Tester after %maxRetries% attempts"
+                    ELSE
+                        # Use exponential backoff for retries
+                        CALL AdaptiveWait WITH PARAMETERS 5 true %retryCount%
+                    END IF
+                END ONERROR
+            END WHILE
+            
+            # Configure Strategy Tester using modular UI interaction functions
+            # First, ensure focus is in the Strategy Tester window
+            SEND KEYS Alt+Tab WINDOW "Strategy Tester"
+            CALL LegacyAdaptiveWait WITH PARAMETERS 1
+            
+            # Select EA using the ConfigureDropdownField function
+            ONERROR
+                CALL ConfigureDropdownField WITH PARAMETERS 1 "%eaName%" "Strategy Tester"
+            ON ERROR
+                CALL LogMessage WITH PARAMETERS "ERROR" "Error selecting EA %eaName%: %ERROR MESSAGE%. Skipping to next EA." ""
+                CALL CaptureErrorState WITH PARAMETERS "SelectEA"
+                CONTINUE
+            END ONERROR
+            
+            # Check if symbol exists and select Symbol
+            ONERROR
+                CALL ConfigureDropdownField WITH PARAMETERS 2 "%currency%" "Strategy Tester"
+            ON ERROR
+                CALL LogMessage WITH PARAMETERS "WARN" "Symbol %currency% not available with broker for EA %eaName%, skipping..." ""
+                # Close Strategy Tester window to prepare for next currency
+                SEND KEYS Alt+F4 WINDOW "Strategy Tester"
+                CALL LegacyAdaptiveWait WITH PARAMETERS 2
+                
+                # Reset consecutive failures counter since we're skipping by design
+                SET consecutiveFailures TO 0
+                
+                CONTINUE
+            END ONERROR
+            
+            # Select Model - only once per currency
+            ONERROR
+                CALL ConfigureDropdownField WITH PARAMETERS 3 "Every tick" "Strategy Tester"
+            ON ERROR
+                CALL LogMessage WITH PARAMETERS "WARN" "Error selecting model for EA %eaName%: %ERROR MESSAGE%. Using default model." ""
+                # Continue anyway with default model
+            END ONERROR
+            
+            # Set Date Range - only once per currency
+            ONERROR
+                # Navigate to "Use date" checkbox
+                CALL NavigateToField WITH PARAMETERS 5 "Strategy Tester"
+                # Check the box if not already checked
+                SEND KEYS Space WINDOW "Strategy Tester"
+                CALL LegacyAdaptiveWait WITH PARAMETERS 1
+                
+                # Configure From date field
+                CALL ConfigureField WITH PARAMETERS 6 "%startDate%" "Strategy Tester"
+                
+                # Configure To date field
+                CALL ConfigureField WITH PARAMETERS 7 "%endDate%" "Strategy Tester"
+            ON ERROR
+                CALL LogMessage WITH PARAMETERS "WARN" "Error setting date range for EA %eaName%: %ERROR MESSAGE%. Using default date range." ""
+                # Continue anyway with default date range
+            END ONERROR
+            
+            # Save these base settings
+            CALL SaveCurrentSettings
+            
+            # Loop through timeframes
+            FOR EACH timeframe IN %timeframes% WITH INDEX timeframeIndex
+                # Skip to checkpoint position if resuming
+                IF %resumeFromCheckpoint% AND %eaIndex% = %eaIndex% AND %currencyIndex% = %currencyIndex% AND %timeframeIndex% < %timeframeIndex%
+                    CONTINUE
+                ELSIF %resumeFromCheckpoint% AND %eaIndex% = %eaIndex% AND %currencyIndex% = %currencyIndex% AND %timeframeIndex% = %timeframeIndex%
+                    # We've reached the exact checkpoint position, disable resuming for subsequent iterations
+                    SET resumeFromCheckpoint TO false
+                END IF
+                
+                ONERROR
+                    CALL LogMessage WITH PARAMETERS "INFO" "Setting timeframe to %timeframe% for EA %eaName% on %currency%" ""
+                    
+                    # Check system resources before starting a new timeframe test
+                    CALL DetailedSystemCheck
+                    
+                    # Load the saved settings
+                    CALL LoadSettings
+                    
+                    # Only modify the timeframe using the ConfigureDropdownField function
+                    CALL ConfigureDropdownField WITH PARAMETERS 4 "%timeframe%" "Strategy Tester"
+                    
+                    # Save the modified settings (optional - only if you want to preserve the last state)
+                    CALL SaveCurrentSettings
+                    
+                    # Estimate test duration for progress reporting
+                    SET estimatedDuration TO CALL EstimateTestDuration WITH PARAMETERS "%currency%" "%timeframe%" "%eaName%"
+                    
+                    # Save checkpoint before starting test
+                    CALL SaveCheckpoint
+                    
+                    # Start Test with keyboard shortcut
+                    SEND KEYS F9 WINDOW "Strategy Tester"
+                    CALL LegacyAdaptiveWait WITH PARAMETERS 5
+                    
+                    SET testStartDetails TO {
+                        "ea": "%eaName%",
+                        "currency": "%currency%",
+                        "timeframe": "%timeframe%",
+                        "estimatedDuration": %estimatedDuration%
+                    }
+                    
+                    CALL LogMessage WITH PARAMETERS "INFO" "Test started" "%testStartDetails%"
+                    
+                    # Wait for test to complete with optimized progress monitoring
+                    SET testWaitTime TO 0
+                    SET testCompleted TO false
+                    SET statusCheckInterval TO 10  # Check every 10 seconds
+                    SET lastProgressValue TO "0"
+                    SET noProgressCounter TO 0
+                    SET maxNoProgressIntervals TO 30  # Allow 5 minutes (30 × 10s) without progress before considering frozen
+                    SET mtFrozenCounter TO 0
+                    SET previousLoggedProgress TO "0"
+                    SET lastProgressLogTime TO 0
+                    SET testStartTime TO %CURRENT TIME IN SECONDS%
+
+                    CALL LogMessage WITH PARAMETERS "INFO" "Monitoring backtest progress..." ""
+
+                    WHILE NOT %testCompleted%
+                        # Method 1: Check if Start button is enabled again (test completed)
+                        ONERROR
+                            IF ELEMENT "Start button (enabled)" EXISTS
+                                CALL LogMessage WITH PARAMETERS "INFO" "Test completion detected: Start button is enabled again" ""
+                                SET testCompleted TO true
+                                BREAK
+                            END IF
+                        ON ERROR
+                            # Continue to other detection methods
+                        END ONERROR
+                            
+                        # Method 2: Check for report tab appearance
+                        ONERROR
+                            IF ELEMENT "Report tab" EXISTS
+                                CALL LogMessage WITH PARAMETERS "INFO" "Test completion detected: Report tab appeared" ""
+                                SET testCompleted TO true
+                                BREAK
+                            END IF
+                        ON ERROR
+                            # Continue to other detection methods
+                        END ONERROR
+                            
+                        # Method 3: Check status bar text for completion indicators
+                        ONERROR
+                            GET TEXT FROM ELEMENT "Status bar" STORE RESULT IN statusText
+                            IF CONTAINS "%statusText%" "complete" OR CONTAINS "%statusText%" "100%" OR CONTAINS "%statusText%" "finished"
+                                CALL LogMessage WITH PARAMETERS "INFO" "Test completion detected: Status bar indicates completion" ""
+                                SET testCompleted TO true
+                                BREAK
+                            END IF
+                                
+                            # Check for progress changes to detect if test is still running
+                            # Extract progress percentage from status text if available
+                            IF CONTAINS "%statusText%" "%"
+                                # Extract just the percentage value
+                                SET currentProgress TO EXTRACT REGEX "(\d+)%" FROM "%statusText%"
+                                    
+                                IF "%currentProgress%" != "%lastProgressValue%"
+                                    # Progress has changed, reset the no-progress counter
+                                    SET lastProgressValue TO "%currentProgress%"
+                                    SET noProgressCounter TO 0
+                                    
+                                    # Calculate estimated remaining time
+                                    IF %lastProgressValue% > 0
+                                                                                SET elapsedTime TO %CURRENT TIME IN SECONDS% - %testStartTime%
+                                        SET progressFraction TO %lastProgressValue% / 100
+                                        SET totalEstimatedTime TO %elapsedTime% / %progressFraction%
+                                        SET remainingTime TO %totalEstimatedTime% - %elapsedTime%
+                                        
+                                        # Format remaining time
+                                        SET remainingMinutes TO FLOOR(%remainingTime% / 60)
+                                        SET remainingSeconds TO FLOOR(%remainingTime% % 60)
+                                        SET remainingTimeFormatted TO "%remainingMinutes%m %remainingSeconds%s"
+                                        
+                                        # Log progress less frequently for long runs
+                                        SET currentTime TO %CURRENT TIME IN SECONDS%
+                                        IF %currentTime% - %lastProgressLogTime% > 300 OR (%lastProgressValue% % %logProgressInterval% = 0 AND "%lastProgressValue%" != "%previousLoggedProgress%")
+                                            SET progressDetails TO {
+                                                "progress": %lastProgressValue%,
+                                                "elapsedTime": %elapsedTime%,
+                                                "estimatedRemaining": "%remainingTimeFormatted%"
+                                            }
+                                            
+                                            CALL LogMessage WITH PARAMETERS "INFO" "Backtest in progress: %lastProgressValue%% complete" "%progressDetails%"
+                                            SET previousLoggedProgress TO "%lastProgressValue%"
+                                            SET lastProgressLogTime TO %currentTime%
+                                        END IF
+                                    END IF
+                                ELSE
+                                    # No change in progress, increment counter
+                                    SET noProgressCounter TO %noProgressCounter% + 1
+                                END IF
+                            END IF
+                        ON ERROR
+                            # Continue to other detection methods
+                        END ONERROR
+                            
+                        # Check system resources periodically during the test - less frequently for long runs
+                        IF %testWaitTime% % 120 = 0
+                            CALL DetailedSystemCheck
+                        END IF
+                            
+                        # Check if MT5 is responsive - less frequently for long runs
+                        IF %testWaitTime% % 120 = 0 AND %testWaitTime% > 0
+                            ONERROR
+                                # Send a harmless key to check if window responds
+                                SEND KEYS Home WINDOW "Strategy Tester"
+                                CALL LegacyAdaptiveWait WITH PARAMETERS 1
+                                    
+                                # Reset frozen counter if MT5 responds
+                                SET mtFrozenCounter TO 0
+                            ON ERROR
+                                # MT5 didn't respond
+                                SET mtFrozenCounter TO %mtFrozenCounter% + 1
+                                CALL LogMessage WITH PARAMETERS "WARN" "Warning: MT5 may be unresponsive (attempt %mtFrozenCounter%)" ""
+                                    
+                                # Check system resources before declaring frozen
+                                CALL DetailedSystemCheck
+                                    
+                                # Only consider MT5 frozen after multiple failed response checks
+                                # Be more tolerant if system is under load
+                                IF %mtFrozenCounter% >= 3 AND %availableMemory% > %lowMemoryThreshold%
+                                    CALL LogMessage WITH PARAMETERS "ERROR" "MT5 appears to be frozen. Attempting recovery..." ""
+                                    CALL CaptureErrorState WITH PARAMETERS "MT5Frozen"
+                                    SET testCompleted TO true
+                                    SET consecutiveFailures TO %consecutiveFailures% + 1
+                                    BREAK
+                                ELSIF %mtFrozenCounter% >= 5
+                                    # Even with low memory, don't wait forever
+                                    CALL LogMessage WITH PARAMETERS "ERROR" "MT5 appears to be frozen despite system load. Attempting recovery..." ""
+                                    CALL CaptureErrorState WITH PARAMETERS "MT5Frozen"
+                                    SET testCompleted TO true
+                                    SET consecutiveFailures TO %consecutiveFailures% + 1
+                                    BREAK
+                                END IF
+                            END ONERROR
+                        END IF
+                            
+                        # Periodic heartbeat log to show script is still running - reduced frequency
+                        IF %testWaitTime% % 1800 = 0 AND %testWaitTime% > 0
+                            CALL LogMessage WITH PARAMETERS "INFO" "Backtest still running after %testWaitTime% seconds. Continuing to wait for completion..." ""
+                        END IF
+                            
+                        CALL LegacyAdaptiveWait WITH PARAMETERS %statusCheckInterval%
+                        SET testWaitTime TO %testWaitTime% + %statusCheckInterval%
+                    END WHILE
+
+                    # Record actual test duration for future estimates
+                    SET actualTestDuration TO %CURRENT TIME IN SECONDS% - %testStartTime%
+                    CALL UpdatePerformanceHistory WITH PARAMETERS "%currency%" "%timeframe%" "%eaName%" %actualTestDuration%
+
+                    # If we detected the test is frozen, try to recover
+                    IF %testCompleted% AND %consecutiveFailures% > 0
+                        # Try to cancel any hanging test
+                        ONERROR
+                            SEND KEYS Escape WINDOW "Strategy Tester"
+                            CALL LegacyAdaptiveWait WITH PARAMETERS 2
+                            SEND KEYS Enter  # In case a confirmation dialog appears
+                            CALL LegacyAdaptiveWait WITH PARAMETERS 1
+                        ON ERROR
+                            # Ignore errors when canceling
+                        END ONERROR
+                            
+                        # Skip to next timeframe if we had to force completion
+                        IF %mtFrozenCounter% >= 3 OR %noProgressCounter% >= %maxNoProgressIntervals% * 2
+                            CALL LogMessage WITH PARAMETERS "WARN" "Skipping to next timeframe due to detected freeze" ""
+                            CONTINUE
+                        END IF
+                    END IF
+                        
+                    # Save Report as Excel format
+                    ONERROR
+                        # Right-click on the report tab to open context menu
+                        RIGHT CLICK ELEMENT "Report tab" WINDOW "Strategy Tester"
+                        CALL LegacyAdaptiveWait WITH PARAMETERS 1
+                        
+                        # Select "Report" from the context menu
+                        SEND KEYS "r" WINDOW "Strategy Tester"
+                        CALL LegacyAdaptiveWait WITH PARAMETERS 1
+                        
+                        # Select "Excel" from the submenu
+                        SEND KEYS "e" WINDOW "Strategy Tester"
+                        CALL LegacyAdaptiveWait WITH PARAMETERS 2
+                        
+                        # Now we should have the Save As dialog with the Excel-compatible XML format
+                        # Get the default filename that MT5 suggests
+                        SEND KEYS Ctrl+a WINDOW "Save As"
+                        CALL LegacyAdaptiveWait WITH PARAMETERS 1
+                        SEND KEYS Ctrl+c WINDOW "Save As"
+                        CALL LegacyAdaptiveWait WITH PARAMETERS 1
+                        GET CLIPBOARD TEXT STORE RESULT IN defaultFileName
+                        
+                        # Append our custom naming to MT5's default filename
+                        SET customSuffix TO "_%eaName%_%currency%_%timeframe%_(%reportCounter%)"
+                        
+                        # Remove extension to add our suffix before the extension
+                        SET baseFileName TO EXTRACT REGEX "(.*)\.[^.]*$" FROM "%defaultFileName%"
+                        IF "%baseFileName%" = ""
+                            SET baseFileName TO "%defaultFileName%"
+                        END IF
+                        
+                        # Get the extension
+                        SET fileExtension TO EXTRACT REGEX ".*(\.[^.]*$)" FROM "%defaultFileName%"
+                        IF "%fileExtension%" = ""
+                            SET fileExtension TO ".xml"
+                        END IF
+                        
+                        SET reportFileName TO "%baseFileName%%customSuffix%%fileExtension%"
+                        
+                        # Set the complete path and filename
+                        SEND KEYS "%reportPath%\%reportFileName%" WINDOW "Save As"
+                        CALL LegacyAdaptiveWait WITH PARAMETERS 1
+                        SEND KEYS Enter WINDOW "Save As"
+                        CALL LegacyAdaptiveWait WITH PARAMETERS 3
+                        
+                        SET reportDetails TO {
+                            "filename": "%reportFileName%",
+                            "ea": "%eaName%",
+                            "currency": "%currency%",
+                            "timeframe": "%timeframe%",
+                            "duration": %actualTestDuration%
+                        }
+                        
+                        CALL LogMessage WITH PARAMETERS "INFO" "Excel report saved" "%reportDetails%"
+                        
+                        # Increment counter
+                        SET reportCounter TO %reportCounter% + 1
+                        
+                        # Reset consecutive failures counter on success
+                        SET consecutiveFailures TO 0
+                        
+                        # Close report tab with keyboard shortcut
+                        SEND KEYS Ctrl+F4 WINDOW "Strategy Tester"
+                        CALL LegacyAdaptiveWait WITH PARAMETERS 2
+
+                    ON ERROR
+                        # Fallback method using alternative approach
+                        ONERROR
+                            # Try alternative method to access Excel report
+                            # First ensure focus is on Strategy Tester
+                            SEND KEYS Alt+Tab WINDOW "Strategy Tester"
+                            CALL LegacyAdaptiveWait WITH PARAMETERS 1
+                            
+                            # Use Alt key to access menu
+                            SEND KEYS Alt WINDOW "Strategy Tester"
+                            CALL LegacyAdaptiveWait WITH PARAMETERS 1
+                            SEND KEYS v WINDOW "Strategy Tester"  # View menu
+                            CALL LegacyAdaptiveWait WITH PARAMETERS 1
+                            SEND KEYS r WINDOW "Strategy Tester"  # Report submenu
+                            CALL LegacyAdaptiveWait WITH PARAMETERS 1
+                            SEND KEYS e WINDOW "Strategy Tester"  # Excel option
+                            CALL LegacyAdaptiveWait WITH PARAMETERS 2
+                            
+                            # Now we should have the Save As dialog with the Excel-compatible XML format
+                            # Get the default filename that MT5 suggests
+                            SEND KEYS Ctrl+a WINDOW "Save As"
+                            CALL LegacyAdaptiveWait WITH PARAMETERS 1
+                            SEND KEYS Ctrl+c WINDOW "Save As"
+                            CALL LegacyAdaptiveWait WITH PARAMETERS 1
+                            GET CLIPBOARD TEXT STORE RESULT IN defaultFileName
+                            
+                            # Append our custom naming to MT5's default filename
+                            SET customSuffix TO "_%eaName%_%currency%_%timeframe%_(%reportCounter%)"
+                            
+                            # Remove extension to add our suffix before the extension
+                            SET baseFileName TO EXTRACT REGEX "(.*)\.[^.]*$" FROM "%defaultFileName%"
+                            IF "%baseFileName%" = ""
+                                SET baseFileName TO "%defaultFileName%"
+                            END IF
+                            
+                            # Get the extension
+                            SET fileExtension TO EXTRACT REGEX ".*(\.[^.]*$)" FROM "%defaultFileName%"
+                            IF "%fileExtension%" = ""
+                                SET fileExtension TO ".xml"
+                            END IF
+                            
+                            SET reportFileName TO "%baseFileName%%customSuffix%%fileExtension%"
+                            
+                            # Set the complete path and filename
+                            SEND KEYS "%reportPath%\%reportFileName%" WINDOW "Save As"
+                            CALL LegacyAdaptiveWait WITH PARAMETERS 1
+                            SEND KEYS Enter WINDOW "Save As"
+                            CALL LegacyAdaptiveWait WITH PARAMETERS 3
+                            
+                            SET reportDetails TO {
+                                "filename": "%reportFileName%",
+                                "ea": "%eaName%",
+                                "currency": "%currency%",
+                                "timeframe": "%timeframe%",
+                                "duration": %actualTestDuration%,
+                                "method": "alternative"
+                            }
+                            
+                            CALL LogMessage WITH PARAMETERS "INFO" "Excel report saved using alternative method" "%reportDetails%"
+                            
+                            # Increment counter
+                            SET reportCounter TO %reportCounter% + 1
+                            
+                            # Reset consecutive failures counter on success
+                            SET consecutiveFailures TO 0
+                            
+                            # Close report tab with keyboard shortcut
+                            SEND KEYS Ctrl+F4 WINDOW "Strategy Tester"
+                            CALL LegacyAdaptiveWait WITH PARAMETERS 2
+                        ON ERROR
+                            CALL LogMessage WITH PARAMETERS "ERROR" "Failed to save Excel report: %ERROR MESSAGE%" ""
+                            CALL CaptureErrorState WITH PARAMETERS "SaveReport"
+                            
+                            # Increment consecutive failures counter
+                            SET consecutiveFailures TO %consecutiveFailures% + 1
+                            
+                            # Try to close any open dialogs or tabs
+                            ONERROR
+                                SEND KEYS Escape WINDOW "Save As"
+                                CALL LegacyAdaptiveWait WITH PARAMETERS 1
+                                SEND KEYS Ctrl+F4 WINDOW "Strategy Tester"
+                                CALL LegacyAdaptiveWait WITH PARAMETERS 2
+                            ON ERROR
+                                # Ignore errors when closing
+                            END ONERROR
+                        END ONERROR
+                    END ONERROR
+                    
+                    # Check if we need to restart MT5 due to consecutive failures
+                    IF %autoRestartOnFailure% AND %consecutiveFailures% >= %maxConsecutiveFailures%
+                        CALL LogMessage WITH PARAMETERS "WARN" "Detected %consecutiveFailures% consecutive failures. Restarting MT5..." ""
+                        
+                        # Save checkpoint before restart
+                        CALL SaveCheckpoint
+                        
+                        # Close MT5
+                        ONERROR
+                            SEND KEYS Alt+F4 WINDOW "MetaTrader 5"
+                            CALL LegacyAdaptiveWait WITH PARAMETERS 2
+                            
+                            # Handle potential "Save changes" dialog
+                            IF WINDOW "Save" EXISTS
+                                SEND KEYS n WINDOW "Save"  # Don't save changes
+                                CALL LegacyAdaptiveWait WITH PARAMETERS 2
+                            END IF
+                            
+                            # Make sure MT5 is closed
+                            KILL PROCESS "terminal64.exe" WAIT FOR COMPLETION Yes
+                            CALL LegacyAdaptiveWait WITH PARAMETERS 5
+                            
+                            # Restart MT5
+                            RUN PROGRAM "%mt5Path%" WAIT FOR COMPLETION No
+                            CALL LegacyAdaptiveWait WITH PARAMETERS %initialLoadTime%
+                            
+                            # Reset consecutive failures counter
+                            SET consecutiveFailures TO 0
+                            
+                            # Wait for MT5 to fully load
+                            CALL LegacyAdaptiveWait WITH PARAMETERS 10
+                            
+                            # Re-open Strategy Tester
+                            SEND KEYS Alt+t WINDOW "MetaTrader 5"
+                            CALL LegacyAdaptiveWait WITH PARAMETERS 3
+                            
+                            CALL LogMessage WITH PARAMETERS "INFO" "MT5 restarted successfully" ""
+                        ON ERROR
+                            CALL LogMessage WITH PARAMETERS "ERROR" "Failed to restart MT5: %ERROR MESSAGE%" ""
+                            CALL CaptureErrorState WITH PARAMETERS "RestartMT5"
+                            
+                            # Try to continue anyway
+                            SET consecutiveFailures TO 0  # Reset to avoid infinite restart loop
+                        END ONERROR
+                    END IF
+                ON ERROR
+                    CALL LogMessage WITH PARAMETERS "ERROR" "Error during test for EA %eaName% on %currency% with %timeframe%: %ERROR MESSAGE%" ""
+                    CALL CaptureErrorState WITH PARAMETERS "TestExecution"
+                    
+                                        # Increment consecutive failures counter
+                    SET consecutiveFailures TO %consecutiveFailures% + 1
+                    
+                    # Try to close Strategy Tester if it's open
+                    ONERROR
+                        SEND KEYS Alt+F4 WINDOW "Strategy Tester"
+                        CALL LegacyAdaptiveWait WITH PARAMETERS 2
+                    ON ERROR
+                        # Ignore errors when closing
+                    END ONERROR
+                    
+                    # Check if we need to restart MT5 due to consecutive failures
+                    IF %autoRestartOnFailure% AND %consecutiveFailures% >= %maxConsecutiveFailures%
+                        CALL LogMessage WITH PARAMETERS "WARN" "Detected %consecutiveFailures% consecutive failures. Restarting MT5..." ""
+                        
+                        # Save checkpoint before restart
+                        CALL SaveCheckpoint
+                        
+                        # Close MT5
+                        ONERROR
+                            SEND KEYS Alt+F4 WINDOW "MetaTrader 5"
+                            CALL LegacyAdaptiveWait WITH PARAMETERS 2
+                            
+                            # Handle potential "Save changes" dialog
+                            IF WINDOW "Save" EXISTS
+                                SEND KEYS n WINDOW "Save"  # Don't save changes
+                                CALL LegacyAdaptiveWait WITH PARAMETERS 2
+                            END IF
+                            
+                            # Make sure MT5 is closed
+                            KILL PROCESS "terminal64.exe" WAIT FOR COMPLETION Yes
+                            CALL LegacyAdaptiveWait WITH PARAMETERS 5
+                            
+                            # Restart MT5
+                            RUN PROGRAM "%mt5Path%" WAIT FOR COMPLETION No
+                            CALL LegacyAdaptiveWait WITH PARAMETERS %initialLoadTime%
+                            
+                            # Reset consecutive failures counter
+                            SET consecutiveFailures TO 0
+                            
+                            # Wait for MT5 to fully load
+                            CALL LegacyAdaptiveWait WITH PARAMETERS 10
+                            
+                            # Re-open Strategy Tester
+                            SEND KEYS Alt+t WINDOW "MetaTrader 5"
+                            CALL LegacyAdaptiveWait WITH PARAMETERS 3
+                            
+                            CALL LogMessage WITH PARAMETERS "INFO" "MT5 restarted successfully" ""
+                        ON ERROR
+                            CALL LogMessage WITH PARAMETERS "ERROR" "Failed to restart MT5: %ERROR MESSAGE%" ""
+                            CALL CaptureErrorState WITH PARAMETERS "RestartMT5"
+                            
+                            # Try to continue anyway
+                            SET consecutiveFailures TO 0  # Reset to avoid infinite restart loop
+                        END ONERROR
+                    END IF
+                END ONERROR
+            END FOR
+            
+            # Close Strategy Tester window after all timeframes are tested
+            SEND KEYS Alt+F4 WINDOW "Strategy Tester"
+            CALL LegacyAdaptiveWait WITH PARAMETERS 2
+        ON ERROR
+            CALL LogMessage WITH PARAMETERS "ERROR" "Error processing currency %currency% for EA %eaName%: %ERROR MESSAGE%" ""
+            CALL CaptureErrorState WITH PARAMETERS "ProcessCurrency"
+            
+            # Increment consecutive failures counter
+            SET consecutiveFailures TO %consecutiveFailures% + 1
+            
+            # Try to close Strategy Tester if it's open
+            ONERROR
+                SEND KEYS Alt+F4 WINDOW "Strategy Tester"
+                CALL LegacyAdaptiveWait WITH PARAMETERS 2
+            ON ERROR
+                # Ignore errors when closing
+            END ONERROR
+            
+            # Check if we need to restart MT5 due to consecutive failures
+            IF %autoRestartOnFailure% AND %consecutiveFailures% >= %maxConsecutiveFailures%
+                CALL LogMessage WITH PARAMETERS "WARN" "Detected %consecutiveFailures% consecutive failures. Restarting MT5..." ""
+                
+                # Save checkpoint before restart
+                CALL SaveCheckpoint
+                
+                # Close MT5
+                ONERROR
+                    SEND KEYS Alt+F4 WINDOW "MetaTrader 5"
+                    CALL LegacyAdaptiveWait WITH PARAMETERS 2
+                    
+                    # Handle potential "Save changes" dialog
+                    IF WINDOW "Save" EXISTS
+                        SEND KEYS n WINDOW "Save"  # Don't save changes
+                        CALL LegacyAdaptiveWait WITH PARAMETERS 2
+                    END IF
+                    
+                    # Make sure MT5 is closed
+                    KILL PROCESS "terminal64.exe" WAIT FOR COMPLETION Yes
+                    CALL LegacyAdaptiveWait WITH PARAMETERS 5
+                    
+                    # Restart MT5
+                    RUN PROGRAM "%mt5Path%" WAIT FOR COMPLETION No
+                    CALL LegacyAdaptiveWait WITH PARAMETERS %initialLoadTime%
+                    
+                    # Reset consecutive failures counter
+                    SET consecutiveFailures TO 0
+                    
+                    # Wait for MT5 to fully load
+                    CALL LegacyAdaptiveWait WITH PARAMETERS 10
+                    
+                    CALL LogMessage WITH PARAMETERS "INFO" "MT5 restarted successfully" ""
+                ON ERROR
+                    CALL LogMessage WITH PARAMETERS "ERROR" "Failed to restart MT5: %ERROR MESSAGE%" ""
+                    CALL CaptureErrorState WITH PARAMETERS "RestartMT5"
+                    
+                    # Try to continue anyway
+                    SET consecutiveFailures TO 0  # Reset to avoid infinite restart loop
+                END ONERROR
+            END IF
+        END ONERROR
+    END FOR
+END FOR
+
+# Clean up after all tests are complete
+ONERROR
+    # Close MT5
+    SEND KEYS Alt+F4 WINDOW "MetaTrader 5"
+    CALL LegacyAdaptiveWait WITH PARAMETERS 2
+    
+    # Handle potential "Save changes" dialog
+    IF WINDOW "Save" EXISTS
+        SEND KEYS n WINDOW "Save"  # Don't save changes
+        CALL LegacyAdaptiveWait WITH PARAMETERS 2
+    END IF
+    
+    # Remove checkpoint file since we've completed all tests
+    IF FILE EXISTS "%checkpointFile%"
+        DELETE FILE "%checkpointFile%"
+    END IF
+    
+    # Generate summary report
+    ONERROR
+        SET summaryReportPath TO "%reportPath%\backtest_summary_%CURRENT DATE%_%CURRENT TIME%.txt"
+        SET summaryReportPath TO REPLACE ":" WITH "-" IN "%summaryReportPath%"
+        SET summaryReportPath TO REPLACE "/" WITH "-" IN "%summaryReportPath%"
+        
+        SET summaryContent TO "=== BACKTEST AUTOMATION SUMMARY ===\r\n"
+        SET summaryContent TO "%summaryContent%\r\nCompleted at: %CURRENT DATE% %CURRENT TIME%\r\n"
+        SET summaryContent TO "%summaryContent%\r\nTotal reports generated: %reportCounter% - 1\r\n"
+        SET summaryContent TO "%summaryContent%\r\nEAs tested: %COUNT OF LIST eaList%\r\n"
+        SET summaryContent TO "%summaryContent%\r\nCurrency pairs tested: %COUNT OF LIST currencies%\r\n"
+        SET summaryContent TO "%summaryContent%\r\nTimeframes tested: %COUNT OF LIST timeframes%\r\n"
+        SET summaryContent TO "%summaryContent%\r\nDate range: %startDate% to %endDate%\r\n"
+        
+        WRITE TEXT "%summaryContent%" TO FILE "%summaryReportPath%"
+        
+        CALL LogMessage WITH PARAMETERS "INFO" "Summary report generated" {
+            "path": "%summaryReportPath%"
+        }
+    ON ERROR
+        CALL LogMessage WITH PARAMETERS "ERROR" "Failed to generate summary report: %ERROR MESSAGE%" ""
+    END ONERROR
+    
+    # Log completion
+    CALL LogMessage WITH PARAMETERS "INFO" "All backtests completed successfully" {
+        "totalReports": %reportCounter% - 1,
+        "completionTime": "%CURRENT DATE% %CURRENT TIME%"
+    }
+    
+    # Display completion message
+    DISPLAY MESSAGE "All backtests completed successfully. Generated %reportCounter% - 1 reports."
+ON ERROR
+    CALL LogMessage WITH PARAMETERS "ERROR" "Error during cleanup: %ERROR MESSAGE%" ""
+    
+    # Display completion message with warning
+    DISPLAY MESSAGE "Backtests completed with some errors. Check log file for details."
+END ONERROR
