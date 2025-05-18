@@ -10,4 +10,5 @@ if not exist "%LOG_PATH%" mkdir "%LOG_PATH%"
 echo %date% %time% - Starting MT5 with config file >> "%LOG_PATH%\backtest_launch.log"
 start "" %MT5_PATH% /config:%CONFIG_PATH%
 
-echo MT5 launched. Power Automate will now handle the backtest process.
+echo MT5 launched. Now starting PowerShell automation script...
+powershell -ExecutionPolicy Bypass -File .\Start-MT5Backtest.ps1
