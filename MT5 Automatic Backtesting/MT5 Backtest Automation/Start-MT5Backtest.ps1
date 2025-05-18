@@ -17,13 +17,15 @@ try {
     
     # First, let's read the available symbols and timeframes from the INI file
     function Get-AvailableSymbolsAndTimeframes {
-        $iniPath = $script:config.configIniPath
+        $iniPath = ".\Modified_MT5_Backtest_Config.ini"
         if (-not (Test-Path $iniPath)) {
-            # If the path from config is not found, try the one from the batch file
-            $iniPath = ".\Modified_MT5_Backtest_Config.ini"
+            if ($script:config -and $script:config.configIniPath) {
+                $iniPath = $script:config.configIniPath
+            }
+            
             if (-not (Test-Path $iniPath)) {
                 Write-Error "INI file not found: $iniPath"
-                return @{}, @{}
+                return @(), @()
             }
         }
         
@@ -38,7 +40,11 @@ try {
         
         # If no symbols found in INI, use the default list
         if ($symbols.Count -eq 0) {
-            $symbols = $script:constants.VALID_SYMBOLS
+            if ($script:constants -and $script:constants.VALID_SYMBOLS) {
+                $symbols = $script:constants.VALID_SYMBOLS
+            } else {
+                $symbols = @("EURUSD", "GBPUSD", "USDJPY", "AUDUSD")
+            }
         }
         
         # Try to extract timeframes list
@@ -50,7 +56,11 @@ try {
         
         # If no timeframes found in INI, use the default list
         if ($timeframes.Count -eq 0) {
-            $timeframes = $script:constants.VALID_TIMEFRAMES
+            if ($script:constants -and $script:constants.VALID_TIMEFRAMES) {
+                $timeframes = $script:constants.VALID_TIMEFRAMES
+            } else {
+                $timeframes = @("M1", "M5", "M15", "H1", "H4", "D1")
+            }
         }
         
         return $symbols, $timeframes
@@ -67,7 +77,7 @@ try {
 
     # Confirm before proceeding with a large number of tests
     $totalTests = $symbols.Count * $timeframes.Count
-    if ($totalTests -gt 10000) {
+    if ($totalTests -gt 10) {
         $confirmation = Read-Host "This will run $totalTests backtests which may take a long time. Continue? (Y/N)"
         if ($confirmation -ne 'Y') {
             Write-Host "Operation cancelled by user."
@@ -76,9 +86,11 @@ try {
     }
 
     # Run backtests for all symbols and timeframes found in the INI file
+    Write-Host "Starting backtest automation..." -ForegroundColor Green
     Start-MultiSymbolBacktestAutomation -Symbols $symbols -Timeframes $timeframes
 } catch {
     Write-Host "An error occurred: $_" -ForegroundColor Red
+    Write-Host $_.ScriptStackTrace -ForegroundColor Red
     Write-Host "Press any key to continue..."
     $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 }

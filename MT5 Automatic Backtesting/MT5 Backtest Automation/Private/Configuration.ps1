@@ -366,4 +366,93 @@ function Confirm-RequiredPaths {
     
     # Check if config INI file exists
     if (-not (Test-Path -Path $script:config.configIniPath)) {
-        throw "Config INI file does not exist: $($script:config
+        throw "Config INI file does not exist: $($script:config.configIniPath)"
+    }
+}
+
+function Export-Configuration {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $false)]
+        [string]$ConfigFilePath = $script:config.configFilePath
+    )
+    
+    try {
+        # Convert configuration to JSON
+        $configJson = $script:config | ConvertTo-Json -Depth 5
+        
+        # Save to file
+        Set-Content -Path $ConfigFilePath -Value $configJson -Force
+        
+        Write-Information "Configuration saved to $ConfigFilePath"
+        Write-Log -Level "INFO" -Message "Configuration saved to file" -Details @{
+            "path" = $ConfigFilePath
+        }
+        
+        return $true
+    }
+    catch {
+        Write-Error "Failed to save configuration: $($_.Exception.Message)"
+        Write-Log -Level "ERROR" -Message "Failed to save configuration" -Details @{
+            "error" = $_.Exception.Message
+            "stackTrace" = $_.ScriptStackTrace
+        }
+        
+        return $false
+    }
+}
+
+function Reset-Configuration {
+    [CmdletBinding()]
+    param()
+    
+    # Reset to default configuration
+    Initialize-DefaultConfiguration
+    
+    Write-Information "Configuration reset to defaults"
+    Write-Log -Level "INFO" -Message "Configuration reset to defaults" -Details @{}
+}
+
+function Initialize-DefaultConfiguration {
+    [CmdletBinding()]
+    param()
+    
+    # Initialize default configuration
+    $script:config = @{
+        # Paths
+        batchFilePath = ".\Modified_Run_MT5_Backtest.bat"
+        configIniPath = ".\Modified_MT5_Backtest_Config.ini"
+        configFilePath = ".\config.json"
+        reportPath = ".\Reports"
+        logPath = ".\Reports\logs"
+        errorScreenshotsPath = ".\Reports\errors"
+        checkpointFile = ".\Reports\checkpoint.json"
+        performanceHistoryFile = ".\Reports\performance_history.json"
+        
+        # Test settings
+        maxWaitTimeForTest = 180
+        initialLoadTime = 15
+        maxRetries = 3
+        skipOnError = $true
+        autoRestartOnFailure = $true
+        maxConsecutiveFailures = 5
+        
+        # Adaptive wait settings
+        adaptiveWaitEnabled = $true
+        baseWaitMultiplier = 1.0
+        maxAdaptiveWaitMultiplier = 5
+        
+        # System monitoring
+        systemLoadCheckInterval = 300
+        lowMemoryThreshold = 200
+        
+        # Logging
+        verboseLogging = $true
+        logProgressInterval = 10
+        
+        # EA settings
+        eaName = ""
+    }
+    
+    Write-Verbose "Default configuration initialized"
+}
