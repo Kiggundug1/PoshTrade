@@ -436,23 +436,20 @@ function Initialize-DefaultConfiguration {
     [CmdletBinding()]
     param()
     
-    # Get the script's directory to use for relative paths
-    $scriptDir = $PSScriptRoot
-    if (-not $scriptDir) {
-        $scriptDir = (Get-Location).Path
-    }
+    # Get the project root directory (two levels up from Private folder)
+    $projectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
     
     # Initialize default configuration with absolute paths
     $script:config = @{
         # Paths
-        batchFilePath = Join-Path -Path $scriptDir -ChildPath "..\Modified_Run_MT5_Backtest.bat"
-        configIniPath = Join-Path -Path $scriptDir -ChildPath "..\Modified_MT5_Backtest_Config.ini"
-        configFilePath = Join-Path -Path $scriptDir -ChildPath "..\config.json"
-        reportPath = Join-Path -Path $scriptDir -ChildPath "..\Reports"
-        logPath = Join-Path -Path $scriptDir -ChildPath "..\Reports\logs"
-        errorScreenshotsPath = Join-Path -Path $scriptDir -ChildPath "..\Reports\errors"
-        checkpointFile = Join-Path -Path $scriptDir -ChildPath "..\Reports\checkpoint.json"
-        performanceHistoryFile = Join-Path -Path $scriptDir -ChildPath "..\Reports\performance_history.json"
+        batchFilePath = Join-Path -Path $projectRoot -ChildPath "Modified_Run_MT5_Backtest.bat"
+        configIniPath = Join-Path -Path $projectRoot -ChildPath "Modified_MT5_Backtest_Config.ini"
+        configFilePath = Join-Path -Path $projectRoot -ChildPath "config.json"
+        reportPath = Join-Path -Path $projectRoot -ChildPath "Reports"
+        logPath = Join-Path -Path $projectRoot -ChildPath "Reports\logs"
+        errorScreenshotsPath = Join-Path -Path $projectRoot -ChildPath "Reports\errors"
+        checkpointFile = Join-Path -Path $projectRoot -ChildPath "Reports\checkpoint.json"
+        performanceHistoryFile = Join-Path -Path $projectRoot -ChildPath "Reports\performance_history.json"
         
         # Test settings
         maxWaitTimeForTest = 180
@@ -478,6 +475,23 @@ function Initialize-DefaultConfiguration {
         # EA settings
         eaName = ""
     }
+    
+    # Create necessary directories if they don't exist
+    $directoriesToCreate = @(
+        $script:config.reportPath,
+        $script:config.logPath,
+        $script:config.errorScreenshotsPath
+    )
+    
+    foreach ($dir in $directoriesToCreate) {
+        if (-not (Test-Path -Path $dir)) {
+            New-Item -Path $dir -ItemType Directory -Force | Out-Null
+            Write-Verbose "Created directory: $dir"
+        }
+    }
+    
+    # Set the log file path
+    $script:config.logFilePath = Join-Path -Path $script:config.logPath -ChildPath "mt5_backtest_$(Get-Date -Format 'yyyyMMdd').log"
     
     Write-Verbose "Default configuration initialized"
     Write-Log -Level "INFO" -Message "Default configuration initialized" -Details @{

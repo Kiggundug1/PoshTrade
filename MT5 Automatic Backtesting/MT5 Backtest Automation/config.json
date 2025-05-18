@@ -1,0 +1,10 @@
+Set-Content -Path ".\\config.json" -Value '{
+  "batchFilePath": "Modified_Run_MT5_Backtest.bat",
+  "configIniPath": "Modified_MT5_Backtest_Config.ini",
+  "maxWaitTimeForTest": 180,
+  "maxRetries": 3,
+  "verboseLogging": true,
+  "reportPath": "Reports",
+  "logPath": "Reports\\Logs",
+  "errorScreenshotsPath": "Reports\\errors"
+}'
