@@ -49,7 +49,7 @@ Write-Host "Total backtests to run: $($symbols.Count * $timeframes.Count)"
 
 # Confirm before proceeding with a large number of tests
 $totalTests = $symbols.Count * $timeframes.Count
-if ($totalTests -gt 50) {
+if ($totalTests -gt 10000) {
     $confirmation = Read-Host "This will run $totalTests backtests which may take a long time. Continue? (Y/N)"
     if ($confirmation -ne 'Y') {
         Write-Host "Operation cancelled by user."
