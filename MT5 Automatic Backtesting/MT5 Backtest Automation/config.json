@@ -1,10 +1,11 @@
-Set-Content -Path ".\\config.json" -Value '{
-  "batchFilePath": "Modified_Run_MT5_Backtest.bat",
-  "configIniPath": "Modified_MT5_Backtest_Config.ini",
+{
+  "verboseLogging": true,
+  "batchFilePath": "D:\\FOREX\\Coding\\Git_&_Github\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_Run_MT5_Backtest.bat",
+  "configIniPath": "D:\\FOREX\\Coding\\Git_&_Github\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_MT5_Backtest_Config.ini",
+  "reportPath": "D:\\FOREX\\Coding\\Git_&_Github\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Reports",
+  "logPath": "D:\\FOREX\\Coding\\Git_&_Github\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Reports\\Logs",
+  "errorScreenshotsPath": "D:\\FOREX\\Coding\\Git_&_Github\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Reports\\errors",
   "maxWaitTimeForTest": 180,
   "maxRetries": 3,
-  "verboseLogging": true,
-  "reportPath": "Reports",
-  "logPath": "Reports\\Logs",
-  "errorScreenshotsPath": "Reports\\errors"
-}'
+  "skipOnError": true
+}

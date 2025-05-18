@@ -338,6 +338,13 @@ function Initialize-Environment {
     Write-Information "Initializing environment"
     Write-Log -Level "INFO" -Message "Initializing environment" -Details @{}
     
+    # Always import config.json if it exists
+    $projectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+    $jsonConfigPath = Join-Path -Path $projectRoot -ChildPath "config.json"
+    if (Test-Path -Path $jsonConfigPath) {
+        Import-Configuration -ConfigFilePath $jsonConfigPath
+    }
+
     # Ensure configuration is initialized
     if (-not (Get-Variable -Name 'config' -Scope 'script' -ErrorAction SilentlyContinue)) {
         Write-Information "Configuration not initialized. Initializing default configuration."
