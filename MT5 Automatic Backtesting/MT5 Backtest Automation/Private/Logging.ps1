@@ -14,6 +14,32 @@ function Write-Log {
         [hashtable]$Details = @{}
     )
     
+    # Check if logFilePath is defined
+    if (-not $script:config -or -not $script:config.logFilePath) {
+        # Create a default log path if not defined
+        $defaultLogDir = Join-Path -Path $PSScriptRoot -ChildPath "..\Reports\Logs"
+        $defaultLogFile = Join-Path -Path $defaultLogDir -ChildPath "mt5_backtest_$(Get-Date -Format 'yyyyMMdd').log"
+        
+        # Ensure directory exists
+        if (-not (Test-Path -Path $defaultLogDir)) {
+            New-Item -Path $defaultLogDir -ItemType Directory -Force | Out-Null
+        }
+        
+        # Initialize config if needed
+        if (-not $script:config) {
+            $script:config = @{}
+        }
+        
+        # Set default log path and settings
+        $script:config.logFilePath = $defaultLogFile
+        $script:config.maxLogSizeMB = 10
+        $script:config.maxLogBackups = 5
+        $script:config.verboseLogging = $true
+        
+        # Output warning about using default log settings
+        Write-Warning "Log path not configured. Using default: $defaultLogFile"
+    }
+
     # Check log file size and rotate if needed
     if ((Test-Path -Path $script:config.logFilePath) -and 
         ((Get-Item -Path $script:config.logFilePath).Length / 1MB) -gt $script:config.maxLogSizeMB) {

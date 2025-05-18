@@ -282,7 +282,7 @@ function Update-PerformanceHistory {
     # Save to file
     try {
         $script:runtime.performanceHistory | ConvertTo-Json | Set-Content -Path $script:config.performanceHistoryFile
-        Write-Debug "Updated performance history for $historyKey: $newDuration"
+        Write-Debug "Updated performance history for ${historyKey}: ${newDuration}"
         Write-Log -Level "DEBUG" -Message "Updated performance history" -Details @{
             "combination" = $historyKey
             "duration" = $newDuration

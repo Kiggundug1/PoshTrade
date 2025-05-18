@@ -114,6 +114,22 @@ function Start-MultiSymbolBacktestAutomation {
         [ValidateSet("M1", "M5", "M15", "M30", "H1", "H4", "D1", "W1", "MN1")]
         [string[]]$Timeframes = @("M1", "M5", "M15", "M30", "H1", "H4", "D1")
     )
+
+    # Ensure configuration is loaded
+    if (-not $script:config -or -not $script:config.reportPath) {
+        # Initialize environment and configuration
+        Initialize-Environment
+        Import-Configuration
+        
+        # If still null, set a default path
+        if (-not $script:config.reportPath) {
+            $script:config.reportPath = Join-Path -Path $PSScriptRoot -ChildPath "..\Reports"
+            # Ensure the directory exists
+            if (-not (Test-Path -Path $script:config.reportPath)) {
+                New-Item -Path $script:config.reportPath -ItemType Directory -Force | Out-Null
+            }
+        }
+    }
     
     Write-Information "Starting multi-symbol, multi-timeframe backtest automation"
     Write-Host "Starting multi-symbol, multi-timeframe backtest automation" -ForegroundColor Cyan

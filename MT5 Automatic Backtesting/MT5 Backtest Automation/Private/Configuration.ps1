@@ -295,11 +295,17 @@ function Validate-Configuration {
     $configErrors = @()
     
     # Check for required paths
-    if (-not (Test-Path -Path $script:config.batchFilePath)) {
+    if ([string]::IsNullOrEmpty($script:config.batchFilePath)) {
+        $configErrors += "Batch file path is not defined"
+    }
+    elseif (-not (Test-Path -Path $script:config.batchFilePath)) {
         $configErrors += "Batch file does not exist: $($script:config.batchFilePath)"
     }
     
-    if (-not (Test-Path -Path $script:config.configIniPath)) {
+    if ([string]::IsNullOrEmpty($script:config.configIniPath)) {
+        $configErrors += "Config INI file path is not defined"
+    }
+    elseif (-not (Test-Path -Path $script:config.configIniPath)) {
         $configErrors += "Config INI file does not exist: $($script:config.configIniPath)"
     }
     
@@ -332,6 +338,13 @@ function Initialize-Environment {
     Write-Information "Initializing environment"
     Write-Log -Level "INFO" -Message "Initializing environment" -Details @{}
     
+    # Ensure configuration is initialized
+    if (-not (Get-Variable -Name 'config' -Scope 'script' -ErrorAction SilentlyContinue)) {
+        Write-Information "Configuration not initialized. Initializing default configuration."
+        Write-Log -Level "WARN" -Message "Configuration not initialized. Initializing default configuration." -Details @{}
+        Initialize-DefaultConfiguration
+    }
+    
     # Validate configuration
     Validate-Configuration
     
@@ -359,13 +372,19 @@ function Confirm-RequiredPaths {
     [CmdletBinding()]
     param()
     
-    # Check if batch file exists
-    if (-not (Test-Path -Path $script:config.batchFilePath)) {
+    # Check if batch file path is defined and exists
+    if ([string]::IsNullOrEmpty($script:config.batchFilePath)) {
+        throw "Batch file path is not defined"
+    }
+    elseif (-not (Test-Path -Path $script:config.batchFilePath)) {
         throw "Batch file does not exist: $($script:config.batchFilePath)"
     }
     
-    # Check if config INI file exists
-    if (-not (Test-Path -Path $script:config.configIniPath)) {
+    # Check if config INI file path is defined and exists
+    if ([string]::IsNullOrEmpty($script:config.configIniPath)) {
+        throw "Config INI file path is not defined"
+    }
+    elseif (-not (Test-Path -Path $script:config.configIniPath)) {
         throw "Config INI file does not exist: $($script:config.configIniPath)"
     }
 }
@@ -417,17 +436,23 @@ function Initialize-DefaultConfiguration {
     [CmdletBinding()]
     param()
     
-    # Initialize default configuration
+    # Get the script's directory to use for relative paths
+    $scriptDir = $PSScriptRoot
+    if (-not $scriptDir) {
+        $scriptDir = (Get-Location).Path
+    }
+    
+    # Initialize default configuration with absolute paths
     $script:config = @{
         # Paths
-        batchFilePath = ".\Modified_Run_MT5_Backtest.bat"
-        configIniPath = ".\Modified_MT5_Backtest_Config.ini"
-        configFilePath = ".\config.json"
-        reportPath = ".\Reports"
-        logPath = ".\Reports\logs"
-        errorScreenshotsPath = ".\Reports\errors"
-        checkpointFile = ".\Reports\checkpoint.json"
-        performanceHistoryFile = ".\Reports\performance_history.json"
+        batchFilePath = Join-Path -Path $scriptDir -ChildPath "..\Modified_Run_MT5_Backtest.bat"
+        configIniPath = Join-Path -Path $scriptDir -ChildPath "..\Modified_MT5_Backtest_Config.ini"
+        configFilePath = Join-Path -Path $scriptDir -ChildPath "..\config.json"
+        reportPath = Join-Path -Path $scriptDir -ChildPath "..\Reports"
+        logPath = Join-Path -Path $scriptDir -ChildPath "..\Reports\logs"
+        errorScreenshotsPath = Join-Path -Path $scriptDir -ChildPath "..\Reports\errors"
+        checkpointFile = Join-Path -Path $scriptDir -ChildPath "..\Reports\checkpoint.json"
+        performanceHistoryFile = Join-Path -Path $scriptDir -ChildPath "..\Reports\performance_history.json"
         
         # Test settings
         maxWaitTimeForTest = 180
@@ -455,4 +480,8 @@ function Initialize-DefaultConfiguration {
     }
     
     Write-Verbose "Default configuration initialized"
+    Write-Log -Level "INFO" -Message "Default configuration initialized" -Details @{
+        "batchFilePath" = $script:config.batchFilePath
+        "configIniPath" = $script:config.configIniPath
+    }
 }
