@@ -1,0 +1,10 @@
+{"message":"Initializing environment","timestamp":"2025-05-19 11:36:38","level":"INFO"}
+
+{"message":"Configuration error: Batch file path is not defined","timestamp":"2025-05-19 11:36:38","level":"ERROR"}
+
+{"message":"Configuration error: Config INI file path is not defined","timestamp":"2025-05-19 11:36:38","level":"ERROR"}
+
+{"message":"Configuration error: maxWaitTimeForTest must be greater than 0","timestamp":"2025-05-19 11:36:38","level":"ERROR"}
+
+{"message":"Configuration error: maxRetries must be greater than or equal to 0","timestamp":"2025-05-19 11:36:38","level":"ERROR"}
+
