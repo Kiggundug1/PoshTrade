@@ -43,7 +43,7 @@ try {
             if ($script:constants -and $script:constants.VALID_SYMBOLS) {
                 $symbols = $script:constants.VALID_SYMBOLS
             } else {
-                $symbols = @("EURUSD", "GBPUSD", "USDJPY", "AUDUSD")
+                $symbols = @("EURUSD", "GBPUSD")
             }
         }
         
@@ -59,7 +59,7 @@ try {
             if ($script:constants -and $script:constants.VALID_TIMEFRAMES) {
                 $timeframes = $script:constants.VALID_TIMEFRAMES
             } else {
-                $timeframes = @("M1", "M5", "M15", "H1", "H4", "D1")
+                $timeframes = @("M1", "M5", "M15")
             }
         }
         

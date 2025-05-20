@@ -5,12 +5,7 @@ function Start-BacktestAutomation {
     param()
     
     try {
-        # Initialize environment
-        Initialize-Environment
-        
-        # Load configuration if available
-        Import-Configuration
-        
+                
         # Initial system resource check
         Invoke-DetailedSystemCheck
         
@@ -323,5 +318,29 @@ Adaptive wait multiplier: $($script:runtime.currentAdaptiveMultiplier)
         Write-Log -Level "ERROR" -Message "Failed to generate summary report: $($_.Exception.Message)" -Details @{
             "stackTrace" = $_.ScriptStackTrace
         }
+    }
+}
+
+function Invoke-CleanupAfterBacktest {
+    [CmdletBinding()]
+    param()
+
+    try {
+        Write-Information "Running post-backtest cleanup..."
+        Write-Log -Level "INFO" -Message "Running post-backtest cleanup..." -Details @{}
+
+        # Example: Close any open error dialogs or popups
+        if (Get-Command -Name Close-OpenDialogs -ErrorAction SilentlyContinue) {
+            Close-OpenDialogs
+        }
+
+        # Example: Reset runtime variables if needed
+        $script:runtime.currentAdaptiveMultiplier = 1
+
+        # Add more cleanup steps as needed
+    }
+    catch {
+        Write-Warning "Cleanup after backtest failed: $($_.Exception.Message)"
+        Write-Log -Level "WARN" -Message "Cleanup after backtest failed: $($_.Exception.Message)" -Details @{}
     }
 }

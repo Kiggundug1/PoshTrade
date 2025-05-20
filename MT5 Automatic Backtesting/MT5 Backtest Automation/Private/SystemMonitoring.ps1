@@ -30,7 +30,7 @@ function Invoke-DetailedSystemCheck {
     param()
     
     # Get current time
-    $currentTime = [int](Get-Date).ToFileTime()
+    $currentTime = [long](Get-Date).ToFileTime()
     
     # Only check periodically to avoid overhead
     if ($currentTime - $script:runtime.lastSystemLoadCheck -ge $script:config.detailedSystemCheckInterval) {
@@ -162,14 +162,14 @@ function Invoke-AdaptiveWait {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
-        [ValidateRange(0, [int]::MaxValue)]
-        [int]$WaitTime,
+        [ValidateRange(0, [long]::MaxValue)]
+        [long]$WaitTime,
         
         [Parameter(Mandatory = $false)]
         [bool]$IsRetry = $false,
         
         [Parameter(Mandatory = $false)]
-        [int]$RetryCount = 0
+        [long]$RetryCount = 0
     )
     
     # Validate parameters
@@ -242,8 +242,8 @@ function Update-PerformanceHistory {
         [string]$EaName,
         
         [Parameter(Mandatory = $true)]
-        [ValidateRange(1, [int]::MaxValue)]
-        [int]$ActualDuration
+        [ValidateRange(1, [long]::MaxValue)]
+        [long]$ActualDuration
     )
     
     # Validate parameters

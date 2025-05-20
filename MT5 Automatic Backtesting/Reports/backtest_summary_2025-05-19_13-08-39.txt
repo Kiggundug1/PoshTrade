@@ -1,0 +1,18 @@
+=== BACKTEST AUTOMATION SUMMARY ===
+
+Completed at: 2025-05-19 13:08:39
+
+Total reports generated: -1
+
+EA tested: 
+
+Symbol tested: GBPUSD
+
+Timeframe tested: M1
+
+=== SYSTEM PERFORMANCE ===
+
+Available memory: 1103 MB
+
+Adaptive wait multiplier: 1
+

@@ -116,7 +116,8 @@ function Rotate-LogFiles {
         if (Test-Path -Path $script:config.logFilePath) {
             Move-Item -Path $script:config.logFilePath -Destination "$($script:config.logFilePath).1" -Force
         }
-        
+        $sizeMB = $script:config.maxLogSizeMB
+        if (-not $sizeMB) { $sizeMB = "?" }
         Write-Warning "Log file rotated due to size limit ($($script:config.maxLogSizeMB) MB)"
     }
     catch {
@@ -138,6 +139,10 @@ function Capture-ErrorState {
         [Parameter(Mandatory = $true)]
         [string]$ErrorContext
     )
+
+    # Ensure Windows Forms is loaded
+    Add-Type -AssemblyName System.Windows.Forms
+    Add-Type -AssemblyName System.Drawing
     
     try {
         # Format timestamp for filename

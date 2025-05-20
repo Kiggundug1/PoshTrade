@@ -1,0 +1,222 @@
+{"message":"Launching MT5 using batch file: D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_Run_MT5_Backtest.bat","timestamp":"2025-05-19 13:44:38","level":"INFO"}
+
+{"message":"Default configuration initialized","timestamp":"2025-05-19 13:50:38","level":"INFO","details":{"batchFilePath":"D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_Run_MT5_Backtest.bat","configIniPath":"D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_MT5_Backtest_Config.ini"}}
+
+{"message":"No configuration file found at D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\config.json. Using default settings.","timestamp":"2025-05-19 13:50:38","level":"INFO"}
+
+{"message":"Updated INI file for new test","timestamp":"2025-05-19 13:50:38","level":"INFO","details":{"timeframe":"M1","symbol":"EURUSD"}}
+
+{"message":"Initializing environment","timestamp":"2025-05-19 13:50:38","level":"INFO"}
+
+{"message":"Default configuration initialized","timestamp":"2025-05-19 13:50:38","level":"INFO","details":{"batchFilePath":"D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_Run_MT5_Backtest.bat","configIniPath":"D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_MT5_Backtest_Config.ini"}}
+
+{"message":"No configuration file found at D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\config.json. Using default settings.","timestamp":"2025-05-19 13:50:38","level":"INFO"}
+
+{"message":"System check","timestamp":"2025-05-19 13:50:38","level":"INFO","details":{"adaptiveMultiplier":null,"availableMemory":3306,"cpuUsage":50}}
+
+{"message":"Starting backtest automation with INI-based configuration","timestamp":"2025-05-19 13:50:38","level":"INFO"}
+
+{"message":"Reading settings from INI file: D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_MT5_Backtest_Config.ini","timestamp":"2025-05-19 13:50:38","level":"INFO"}
+
+{"message":"Settings extracted from INI file","timestamp":"2025-05-19 13:50:38","level":"INFO","details":{"Symbol":"EURUSD","Optimization":"0","ToDate":"2024.12.31","Period":"M1","Model":"1","FromDate":"2019.01.01","Expert":"Moving Average EURUSD M15.ex5","Visual":"0"}}
+
+{"message":"Launching MT5 using batch file: D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_Run_MT5_Backtest.bat","timestamp":"2025-05-19 13:50:38","level":"INFO"}
+
+{"message":"Default configuration initialized","timestamp":"2025-05-19 13:56:10","level":"INFO","details":{"batchFilePath":"D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_Run_MT5_Backtest.bat","configIniPath":"D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_MT5_Backtest_Config.ini"}}
+
+{"message":"Loading configuration from D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\config.json","timestamp":"2025-05-19 13:56:10","level":"INFO"}
+
+{"message":"Failed to parse JSON config, falling back to text format","timestamp":"2025-05-19 13:56:10","level":"WARN","details":{"error":"A parameter cannot be found that matches parameter name \u0027AsHashtable\u0027."}}
+
+{"message":"Configuration loaded successfully from text format","timestamp":"2025-05-19 13:56:10","level":"INFO"}
+
+{"message":"No configuration file found at D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\config.json. Using default settings.","timestamp":"2025-05-19 13:56:10","level":"INFO"}
+
+{"message":"Updated INI file for new test","timestamp":"2025-05-19 13:56:10","level":"INFO","details":{"timeframe":"M1","symbol":"EURUSD"}}
+
+{"message":"Initializing environment","timestamp":"2025-05-19 13:56:10","level":"INFO"}
+
+{"message":"Default configuration initialized","timestamp":"2025-05-19 13:56:10","level":"INFO","details":{"batchFilePath":"D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_Run_MT5_Backtest.bat","configIniPath":"D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_MT5_Backtest_Config.ini"}}
+
+{"message":"Loading configuration from D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\config.json","timestamp":"2025-05-19 13:56:10","level":"INFO"}
+
+{"message":"Failed to parse JSON config, falling back to text format","timestamp":"2025-05-19 13:56:10","level":"WARN","details":{"error":"A parameter cannot be found that matches parameter name \u0027AsHashtable\u0027."}}
+
+{"message":"Configuration loaded successfully from text format","timestamp":"2025-05-19 13:56:10","level":"INFO"}
+
+{"message":"No configuration file found at D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\config.json. Using default settings.","timestamp":"2025-05-19 13:56:10","level":"INFO"}
+
+{"message":"System check","timestamp":"2025-05-19 13:56:10","level":"INFO","details":{"adaptiveMultiplier":null,"availableMemory":3304,"cpuUsage":50}}
+
+{"message":"Starting backtest automation with INI-based configuration","timestamp":"2025-05-19 13:56:10","level":"INFO"}
+
+{"message":"Reading settings from INI file: D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_MT5_Backtest_Config.ini","timestamp":"2025-05-19 13:56:10","level":"INFO"}
+
+{"message":"Settings extracted from INI file","timestamp":"2025-05-19 13:56:10","level":"INFO","details":{"Symbol":"EURUSD","Optimization":"0","ToDate":"2024.12.31","Period":"M1","Model":"1","FromDate":"2019.01.01","Expert":"Moving Average EURUSD M15.ex5","Visual":"0"}}
+
+{"message":"Launching MT5 using batch file: D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_Run_MT5_Backtest.bat","timestamp":"2025-05-19 13:56:10","level":"INFO"}
+
+{"message":"Default configuration initialized","timestamp":"2025-05-19 14:05:30","level":"INFO","details":{"batchFilePath":"D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_Run_MT5_Backtest.bat","configIniPath":"D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_MT5_Backtest_Config.ini"}}
+
+{"message":"Loading configuration from D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\config.json","timestamp":"2025-05-19 14:05:30","level":"INFO"}
+
+{"message":"Failed to parse JSON config, falling back to text format","timestamp":"2025-05-19 14:05:30","level":"WARN","details":{"error":"A parameter cannot be found that matches parameter name \u0027AsHashtable\u0027."}}
+
+{"message":"Configuration loaded successfully from text format","timestamp":"2025-05-19 14:05:30","level":"INFO"}
+
+{"message":"No configuration file found at D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\config.json. Using default settings.","timestamp":"2025-05-19 14:05:30","level":"INFO"}
+
+{"message":"Updated INI file for new test","timestamp":"2025-05-19 14:05:30","level":"INFO","details":{"timeframe":"M1","symbol":"EURUSD"}}
+
+{"message":"Initializing environment","timestamp":"2025-05-19 14:05:31","level":"INFO"}
+
+{"message":"Default configuration initialized","timestamp":"2025-05-19 14:05:31","level":"INFO","details":{"batchFilePath":"D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_Run_MT5_Backtest.bat","configIniPath":"D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_MT5_Backtest_Config.ini"}}
+
+{"message":"Loading configuration from D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\config.json","timestamp":"2025-05-19 14:05:31","level":"INFO"}
+
+{"message":"Failed to parse JSON config, falling back to text format","timestamp":"2025-05-19 14:05:31","level":"WARN","details":{"error":"A parameter cannot be found that matches parameter name \u0027AsHashtable\u0027."}}
+
+{"message":"Configuration loaded successfully from text format","timestamp":"2025-05-19 14:05:31","level":"INFO"}
+
+{"message":"No configuration file found at D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\config.json. Using default settings.","timestamp":"2025-05-19 14:05:31","level":"INFO"}
+
+{"message":"System check","timestamp":"2025-05-19 14:05:31","level":"INFO","details":{"adaptiveMultiplier":null,"availableMemory":3275,"cpuUsage":50}}
+
+{"message":"Starting backtest automation with INI-based configuration","timestamp":"2025-05-19 14:05:31","level":"INFO"}
+
+{"message":"Reading settings from INI file: D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_MT5_Backtest_Config.ini","timestamp":"2025-05-19 14:05:31","level":"INFO"}
+
+{"message":"Settings extracted from INI file","timestamp":"2025-05-19 14:05:31","level":"INFO","details":{"Symbol":"EURUSD","Optimization":"0","ToDate":"2024.12.31","Period":"M1","Model":"1","FromDate":"2019.01.01","Expert":"Moving Average EURUSD M15.ex5","Visual":"0"}}
+
+{"message":"Launching MT5 using batch file: D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_Run_MT5_Backtest.bat","timestamp":"2025-05-19 14:05:31","level":"INFO"}
+
+{"message":"Default configuration initialized","timestamp":"2025-05-19 14:20:44","level":"INFO","details":{"batchFilePath":"D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_Run_MT5_Backtest.bat","configIniPath":"D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_MT5_Backtest_Config.ini"}}
+
+{"message":"Loading configuration from D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\config.json","timestamp":"2025-05-19 14:20:44","level":"INFO"}
+
+{"message":"Failed to parse JSON config, falling back to text format","timestamp":"2025-05-19 14:20:44","level":"WARN","details":{"error":"A parameter cannot be found that matches parameter name \u0027AsHashtable\u0027."}}
+
+{"message":"Configuration loaded successfully from text format","timestamp":"2025-05-19 14:20:44","level":"INFO"}
+
+{"message":"No configuration file found at D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\config.json. Using default settings.","timestamp":"2025-05-19 14:20:44","level":"INFO"}
+
+{"message":"Updated INI file for new test","timestamp":"2025-05-19 14:20:44","level":"INFO","details":{"timeframe":"M1","symbol":"EURUSD"}}
+
+{"message":"Initializing environment","timestamp":"2025-05-19 14:20:44","level":"INFO"}
+
+{"message":"Default configuration initialized","timestamp":"2025-05-19 14:20:44","level":"INFO","details":{"batchFilePath":"D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_Run_MT5_Backtest.bat","configIniPath":"D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_MT5_Backtest_Config.ini"}}
+
+{"message":"Loading configuration from D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\config.json","timestamp":"2025-05-19 14:20:44","level":"INFO"}
+
+{"message":"Failed to parse JSON config, falling back to text format","timestamp":"2025-05-19 14:20:44","level":"WARN","details":{"error":"A parameter cannot be found that matches parameter name \u0027AsHashtable\u0027."}}
+
+{"message":"Configuration loaded successfully from text format","timestamp":"2025-05-19 14:20:44","level":"INFO"}
+
+{"message":"No configuration file found at D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\config.json. Using default settings.","timestamp":"2025-05-19 14:20:44","level":"INFO"}
+
+{"message":"System check","timestamp":"2025-05-19 14:20:44","level":"INFO","details":{"adaptiveMultiplier":null,"availableMemory":3127,"cpuUsage":50}}
+
+{"message":"Starting backtest automation with INI-based configuration","timestamp":"2025-05-19 14:20:44","level":"INFO"}
+
+{"message":"Reading settings from INI file: D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_MT5_Backtest_Config.ini","timestamp":"2025-05-19 14:20:44","level":"INFO"}
+
+{"message":"Settings extracted from INI file","timestamp":"2025-05-19 14:20:44","level":"INFO","details":{"Symbol":"EURUSD","Optimization":"0","ToDate":"2024.12.31","Period":"M1","Model":"1","FromDate":"2019.01.01","Expert":"Moving Average EURUSD M15.ex5","Visual":"0"}}
+
+{"message":"Launching MT5 using batch file: D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_Run_MT5_Backtest.bat","timestamp":"2025-05-19 14:20:44","level":"INFO"}
+
+{"message":"Default configuration initialized","timestamp":"2025-05-19 14:21:15","level":"INFO","details":{"batchFilePath":"D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_Run_MT5_Backtest.bat","configIniPath":"D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_MT5_Backtest_Config.ini"}}
+
+{"message":"Loading configuration from D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\config.json","timestamp":"2025-05-19 14:21:15","level":"INFO"}
+
+{"message":"Failed to parse JSON config, falling back to text format","timestamp":"2025-05-19 14:21:15","level":"WARN","details":{"error":"A parameter cannot be found that matches parameter name \u0027AsHashtable\u0027."}}
+
+{"message":"Configuration loaded successfully from text format","timestamp":"2025-05-19 14:21:15","level":"INFO"}
+
+{"message":"No configuration file found at D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\config.json. Using default settings.","timestamp":"2025-05-19 14:21:15","level":"INFO"}
+
+{"message":"Updated INI file for new test","timestamp":"2025-05-19 14:21:15","level":"INFO","details":{"timeframe":"M1","symbol":"EURUSD"}}
+
+{"message":"Initializing environment","timestamp":"2025-05-19 14:21:15","level":"INFO"}
+
+{"message":"Default configuration initialized","timestamp":"2025-05-19 14:21:15","level":"INFO","details":{"batchFilePath":"D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_Run_MT5_Backtest.bat","configIniPath":"D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_MT5_Backtest_Config.ini"}}
+
+{"message":"Loading configuration from D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\config.json","timestamp":"2025-05-19 14:21:15","level":"INFO"}
+
+{"message":"Failed to parse JSON config, falling back to text format","timestamp":"2025-05-19 14:21:15","level":"WARN","details":{"error":"A parameter cannot be found that matches parameter name \u0027AsHashtable\u0027."}}
+
+{"message":"Configuration loaded successfully from text format","timestamp":"2025-05-19 14:21:15","level":"INFO"}
+
+{"message":"No configuration file found at D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\config.json. Using default settings.","timestamp":"2025-05-19 14:21:16","level":"INFO"}
+
+{"message":"System check","timestamp":"2025-05-19 14:21:16","level":"INFO","details":{"adaptiveMultiplier":null,"availableMemory":3056,"cpuUsage":50}}
+
+{"message":"Starting backtest automation with INI-based configuration","timestamp":"2025-05-19 14:21:16","level":"INFO"}
+
+{"message":"Reading settings from INI file: D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_MT5_Backtest_Config.ini","timestamp":"2025-05-19 14:21:16","level":"INFO"}
+
+{"message":"Settings extracted from INI file","timestamp":"2025-05-19 14:21:16","level":"INFO","details":{"Symbol":"EURUSD","Optimization":"0","ToDate":"2024.12.31","Period":"M1","Model":"1","FromDate":"2019.01.01","Expert":"Moving Average EURUSD M15.ex5","Visual":"0"}}
+
+{"message":"Launching MT5 using batch file: D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_Run_MT5_Backtest.bat","timestamp":"2025-05-19 14:21:16","level":"INFO"}
+
+{"message":"Default configuration initialized","timestamp":"2025-05-19 15:07:04","level":"INFO","details":{"batchFilePath":"D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_Run_MT5_Backtest.bat","configIniPath":"D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_MT5_Backtest_Config.ini"}}
+
+{"message":"Loading configuration from D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\config.json","timestamp":"2025-05-19 15:07:04","level":"INFO"}
+
+{"message":"Failed to parse JSON config, falling back to text format","timestamp":"2025-05-19 15:07:04","level":"WARN","details":{"error":"A parameter cannot be found that matches parameter name \u0027AsHashtable\u0027."}}
+
+{"message":"Configuration loaded successfully from text format","timestamp":"2025-05-19 15:07:04","level":"INFO"}
+
+{"message":"No configuration file found at D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\config.json. Using default settings.","timestamp":"2025-05-19 15:07:04","level":"INFO"}
+
+{"message":"Updated INI file for new test","timestamp":"2025-05-19 15:07:04","level":"INFO","details":{"timeframe":"M1","symbol":"EURUSD"}}
+
+{"message":"System check","timestamp":"2025-05-19 15:07:04","level":"INFO","details":{"adaptiveMultiplier":null,"availableMemory":2890,"cpuUsage":50}}
+
+{"message":"Starting backtest automation with INI-based configuration","timestamp":"2025-05-19 15:07:04","level":"INFO"}
+
+{"message":"Reading settings from INI file: D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_MT5_Backtest_Config.ini","timestamp":"2025-05-19 15:07:04","level":"INFO"}
+
+{"message":"Settings extracted from INI file","timestamp":"2025-05-19 15:07:04","level":"INFO","details":{"Symbol":"EURUSD","Optimization":"0","ToDate":"2024.12.31","Period":"M1","Model":"1","FromDate":"2019.01.01","Expert":"Moving Average EURUSD M15.ex5","Visual":"0"}}
+
+{"message":"Launching MT5 using batch file: D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_Run_MT5_Backtest.bat","timestamp":"2025-05-19 15:07:04","level":"INFO"}
+
+{"message":"Default configuration initialized","timestamp":"2025-05-19 15:07:35","level":"INFO","details":{"batchFilePath":"D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_Run_MT5_Backtest.bat","configIniPath":"D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_MT5_Backtest_Config.ini"}}
+
+{"message":"Loading configuration from D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\config.json","timestamp":"2025-05-19 15:07:35","level":"INFO"}
+
+{"message":"Failed to parse JSON config, falling back to text format","timestamp":"2025-05-19 15:07:35","level":"WARN","details":{"error":"A parameter cannot be found that matches parameter name \u0027AsHashtable\u0027."}}
+
+{"message":"Configuration loaded successfully from text format","timestamp":"2025-05-19 15:07:35","level":"INFO"}
+
+{"message":"No configuration file found at D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\config.json. Using default settings.","timestamp":"2025-05-19 15:07:35","level":"INFO"}
+
+{"message":"Updated INI file for new test","timestamp":"2025-05-19 15:07:35","level":"INFO","details":{"timeframe":"M1","symbol":"EURUSD"}}
+
+{"message":"System check","timestamp":"2025-05-19 15:07:36","level":"INFO","details":{"adaptiveMultiplier":null,"availableMemory":2818,"cpuUsage":50}}
+
+{"message":"Starting backtest automation with INI-based configuration","timestamp":"2025-05-19 15:07:36","level":"INFO"}
+
+{"message":"Reading settings from INI file: D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_MT5_Backtest_Config.ini","timestamp":"2025-05-19 15:07:36","level":"INFO"}
+
+{"message":"Settings extracted from INI file","timestamp":"2025-05-19 15:07:36","level":"INFO","details":{"Symbol":"EURUSD","Optimization":"0","ToDate":"2024.12.31","Period":"M1","Model":"1","FromDate":"2019.01.01","Expert":"Moving Average EURUSD M15.ex5","Visual":"0"}}
+
+{"message":"Launching MT5 using batch file: D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_Run_MT5_Backtest.bat","timestamp":"2025-05-19 15:07:36","level":"INFO"}
+
+{"message":"Default configuration initialized","timestamp":"2025-05-19 15:26:39","level":"INFO","details":{"batchFilePath":"D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_Run_MT5_Backtest.bat","configIniPath":"D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_MT5_Backtest_Config.ini"}}
+
+{"message":"Loading configuration from D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\config.json","timestamp":"2025-05-19 15:26:39","level":"INFO"}
+
+{"message":"Failed to parse JSON config, falling back to text format","timestamp":"2025-05-19 15:26:39","level":"WARN","details":{"error":"A parameter cannot be found that matches parameter name \u0027AsHashtable\u0027."}}
+
+{"message":"Default configuration initialized","timestamp":"2025-05-19 15:54:37","level":"INFO","details":{"batchFilePath":"D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_Run_MT5_Backtest.bat","configIniPath":"D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_MT5_Backtest_Config.ini"}}
+
+{"message":"Loading configuration from D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\config.json","timestamp":"2025-05-19 15:54:37","level":"INFO"}
+
+{"message":"Failed to parse JSON config, falling back to text format","timestamp":"2025-05-19 15:54:38","level":"WARN","details":{"error":"A parameter cannot be found that matches parameter name \u0027AsHashtable\u0027."}}
+
+{"message":"Default configuration initialized","timestamp":"2025-05-19 15:59:05","level":"INFO","details":{"batchFilePath":"D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_Run_MT5_Backtest.bat","configIniPath":"D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\Modified_MT5_Backtest_Config.ini"}}
+
+{"message":"Loading configuration from D:\\KGDFRY\\Forex Trading\\GitHub\\PoshTrade\\MT5 Automatic Backtesting\\MT5 Backtest Automation\\config.json","timestamp":"2025-05-19 15:59:05","level":"INFO"}
+
+{"message":"Failed to parse JSON config, falling back to text format","timestamp":"2025-05-19 15:59:05","level":"WARN","details":{"error":"Cannot process argument transformation on parameter \u0027ConfigData\u0027. Cannot convert value \"@{LogPath=Reports/Logs; DefaultSymbols=System.Object[]; DefaultTimeframes=System.Object[]; BacktestFolder=Reports/Backtests; IniFile=Modified_MT5_Backtest_Config.ini; BatchFile=Modified_Run_MT5_Backtest.bat}\" to type \"System.Collections.Hashtable\". Error: \"Cannot convert the \"@{LogPath=Reports/Logs; DefaultSymbols=System.Object[]; DefaultTimeframes=System.Object[]; BacktestFolder=Reports/Backtests; IniFile=Modified_MT5_Backtest_Config.ini; BatchFile=Modified_Run_MT5_Backtest.bat}\" value of type \"System.Management.Automation.PSCustomObject\" to type \"System.Collections.Hashtable\".\""}}
+

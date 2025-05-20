@@ -1,0 +1,18 @@
+=== BACKTEST AUTOMATION SUMMARY ===
+
+Completed at: 2025-05-19 13:31:31
+
+Total reports generated: -1
+
+EA tested: Moving Average EURUSD M15.ex5
+
+Symbol tested: GBPUSD
+
+Timeframe tested: M15
+
+=== SYSTEM PERFORMANCE ===
+
+Available memory: 3304 MB
+
+Adaptive wait multiplier: 1
+

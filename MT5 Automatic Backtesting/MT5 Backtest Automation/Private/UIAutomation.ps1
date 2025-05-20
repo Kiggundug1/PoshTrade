@@ -139,6 +139,14 @@ function Start-MT5WithBatchFile {
     param()
     
     try {
+        # Check if MT5 is already running
+        $mt5Process = Get-Process -Name $script:constants.PROCESS_MT5 -ErrorAction SilentlyContinue
+        if ($mt5Process) {
+            Write-Information "MT5 is already running. Skipping launch."
+            Write-Log -Level "INFO" -Message "MT5 is already running. Skipping launch." -Details @{}
+            return $true
+        }
+
         Write-Information "Launching MT5 using batch file: $($script:config.batchFilePath)"
         Write-Log -Level "INFO" -Message "Launching MT5 using batch file: $($script:config.batchFilePath)" -Details @{}
         
@@ -374,7 +382,7 @@ function Monitor-BacktestProgress {
         Write-Log -Level "INFO" -Message "Monitoring backtest progress..." -Details @{}
         
         # Initialize monitoring variables
-        $script:runtime.testStartTime = [int](Get-Date).ToFileTime()
+        $script:runtime.testStartTime = [long](Get-Date).ToFileTime()
         $testCompleted = $false
         $testWaitTime = 0
         $lastProgressValue = "0"
@@ -445,7 +453,7 @@ function Monitor-BacktestProgress {
         }
         
         # Record actual test duration for future estimates
-        $actualTestDuration = [int](Get-Date).ToFileTime() - $script:runtime.testStartTime
+        $actualTestDuration = [long](Get-Date).ToFileTime() - $script:runtime.testStartTime
         Update-PerformanceHistory -Currency $script:runtime.currency -Timeframe $script:runtime.timeframe -EaName $script:config.eaName -ActualDuration $actualTestDuration
         
         # Return success if test completed normally
