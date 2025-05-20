@@ -338,6 +338,14 @@ function Initialize-Environment {
     Write-Information "Initializing environment"
     Write-Log -Level "INFO" -Message "Initializing environment" -Details @{}
     
+    # Ensure runtime variable is initialized
+    if (-not (Get-Variable -Name 'runtime' -Scope 'script' -ErrorAction SilentlyContinue)) {
+        $script:runtime = @{}
+    }
+
+    # Always initialize default configuration first
+    Initialize-DefaultConfiguration
+
     # Always import config.json if it exists
     $projectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
     $jsonConfigPath = Join-Path -Path $projectRoot -ChildPath "config.json"
@@ -438,7 +446,7 @@ function Reset-Configuration {
     Write-Information "Configuration reset to defaults"
     Write-Log -Level "INFO" -Message "Configuration reset to defaults" -Details @{}
 }
-
+ 
 function Initialize-DefaultConfiguration {
     [CmdletBinding()]
     param()
@@ -449,15 +457,15 @@ function Initialize-DefaultConfiguration {
     # Initialize default configuration with absolute paths
     $script:config = @{
         # Paths
-        batchFilePath = Join-Path -Path $projectRoot -ChildPath "Modified_Run_MT5_Backtest.bat"
-        configIniPath = Join-Path -Path $projectRoot -ChildPath "Modified_MT5_Backtest_Config.ini"
-        configFilePath = Join-Path -Path $projectRoot -ChildPath "config.json"
-        reportPath = Join-Path -Path $projectRoot -ChildPath "Reports"
-        logPath = Join-Path -Path $projectRoot -ChildPath "Reports\logs"
-        errorScreenshotsPath = Join-Path -Path $projectRoot -ChildPath "Reports\errors"
-        checkpointFile = Join-Path -Path $projectRoot -ChildPath "Reports\checkpoint.json"
-        performanceHistoryFile = Join-Path -Path $projectRoot -ChildPath "Reports\performance_history.json"
-        
+        batchFilePath = Join-Path -Path $projectRoot -ChildPath "MT5 Backtest Automation\Modified_Run_MT5_Backtest.bat"
+        configIniPath = Join-Path -Path $projectRoot -ChildPath "MT5 Backtest Automation\Modified_MT5_Backtest_Config.ini"
+        configFilePath = Join-Path -Path $projectRoot -ChildPath "MT5 Backtest Automation\config.json"
+        reportPath = Join-Path -Path $projectRoot -ChildPath "MT5 Backtest Automation\Reports"
+        logPath = Join-Path -Path $projectRoot -ChildPath "MT5 Backtest Automation\Reports\logs"
+        errorScreenshotsPath = Join-Path -Path $projectRoot -ChildPath "MT5 Backtest Automation\Reports\errors"
+        checkpointFile = Join-Path -Path $projectRoot -ChildPath "MT5 Backtest Automation\Reports\checkpoint.json"
+        performanceHistoryFile = Join-Path -Path $projectRoot -ChildPath "MT5 Backtest Automation\Reports\performance_history.json"
+
         # Test settings
         maxWaitTimeForTest = 180
         initialLoadTime = 15
