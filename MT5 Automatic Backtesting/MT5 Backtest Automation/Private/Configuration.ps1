@@ -16,10 +16,15 @@ function Import-Configuration {
     try {
         Write-Log -Level "INFO" -Message "Loading configuration from $ConfigFilePath" -Details @{}
         $configData = Get-Content -Path $ConfigFilePath -Raw
+
+        # --- Debug output for troubleshooting ---
+        Write-Host "DEBUG: Attempting to load config from $ConfigFilePath"
+        Write-Host "DEBUG: Config content: $configData"
+        # --- End debug output ---
         
         # Try to parse as JSON first
         try {
-            $importedConfig = $configData | ConvertFrom-Json -AsHashtable
+            $importedConfig = $configData | ConvertFrom-Json
             Apply-JsonConfiguration -ConfigData $importedConfig
             Write-Log -Level "INFO" -Message "Configuration loaded successfully from JSON" -Details @{}
         }
@@ -28,6 +33,41 @@ function Import-Configuration {
             Write-Log -Level "WARN" -Message "Failed to parse JSON config, falling back to text format" -Details @{
                 "error" = $_.Exception.Message
             }
+
+            # --- Debug output for JSON parse failure ---
+            Write-Host "ERROR: Failed to parse JSON: $($_.Exception.Message)"
+            # --- End debug output ---
+
+            # --- Hardcoded config fallback ---
+            Write-Host "DEBUG: Falling back to hardcoded config."
+            $script:config = @{
+                batchFilePath = "MT5 Backtest Automation\Modified_Run_MT5_Backtest.bat"
+                configIniPath = "MT5 Backtest Automation\Modified_MT5_Backtest_Config.ini"
+                configFilePath = "config.json"
+                reportPath = "Reports"
+                logPath = "Reports\logs"
+                errorScreenshotsPath = "Reports\errors"
+                checkpointFile = "Reports\checkpoint.json"
+                performanceHistoryFile = "Reports\performance_history.json"
+                maxWaitTimeForTest = 180
+                initialLoadTime = 15
+                maxRetries = 3
+                skipOnError = $true
+                autoRestartOnFailure = $true
+                maxConsecutiveFailures = 5
+                adaptiveWaitEnabled = $true
+                baseWaitMultiplier = 1.0
+                maxAdaptiveWaitMultiplier = 5
+                systemLoadCheckInterval = 300
+                lowMemoryThreshold = 200
+                verboseLogging = $true
+                logProgressInterval = 10
+                maxLogSizeMB = 10
+                maxLogBackups = 5
+                eaName = "Moving Average EURUSD M15.ex5"
+            }
+            # --- End hardcoded config fallback ---
+
             Parse-LegacyConfiguration -ConfigData $configData
         }
         
@@ -335,12 +375,23 @@ function Initialize-Environment {
     [CmdletBinding()]
     param()
     
+    # Initialize constants first
+    Initialize-Constants
+
     Write-Information "Initializing environment"
     Write-Log -Level "INFO" -Message "Initializing environment" -Details @{}
     
+    # Always initialize default configuration first
+    Initialize-DefaultConfiguration
+
     # Always import config.json if it exists
-    $projectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-    $jsonConfigPath = Join-Path -Path $projectRoot -ChildPath "config.json"
+    # FIX: Use the correct path for config.json (same directory as scripts)
+    $jsonConfigPath = Join-Path -Path $PSScriptRoot -ChildPath "config.json"
+    if (-not (Test-Path -Path $jsonConfigPath)) {
+        # Fallback: try project root (one level up)
+        $projectRoot = Split-Path -Parent $PSScriptRoot
+        $jsonConfigPath = Join-Path -Path $projectRoot -ChildPath "config.json"
+    }
     if (Test-Path -Path $jsonConfigPath) {
         Import-Configuration -ConfigFilePath $jsonConfigPath
     }
@@ -449,8 +500,8 @@ function Initialize-DefaultConfiguration {
     # Initialize default configuration with absolute paths
     $script:config = @{
         # Paths
-        batchFilePath = Join-Path -Path $projectRoot -ChildPath "Modified_Run_MT5_Backtest.bat"
-        configIniPath = Join-Path -Path $projectRoot -ChildPath "Modified_MT5_Backtest_Config.ini"
+        batchFilePath = Join-Path -Path $projectRoot -ChildPath "MT5 Backtest Automation\Modified_Run_MT5_Backtest.bat"
+        configIniPath = Join-Path -Path $projectRoot -ChildPath "MT5 Backtest Automation\Modified_MT5_Backtest_Config.ini"
         configFilePath = Join-Path -Path $projectRoot -ChildPath "config.json"
         reportPath = Join-Path -Path $projectRoot -ChildPath "Reports"
         logPath = Join-Path -Path $projectRoot -ChildPath "Reports\logs"
@@ -478,9 +529,11 @@ function Initialize-DefaultConfiguration {
         # Logging
         verboseLogging = $true
         logProgressInterval = 10
+        maxLogSizeMB = 10
+        maxLogBackups = 5
         
         # EA settings
-        eaName = ""
+        eaName = "Moving Average EURUSD M15.ex5"
     }
     
     # Create necessary directories if they don't exist
@@ -500,9 +553,47 @@ function Initialize-DefaultConfiguration {
     # Set the log file path
     $script:config.logFilePath = Join-Path -Path $script:config.logPath -ChildPath "mt5_backtest_$(Get-Date -Format 'yyyyMMdd').log"
     
+    # Initialize runtime hashtable if not already set
+    if (-not (Get-Variable -Name 'runtime' -Scope 'script' -ErrorAction SilentlyContinue)) {
+        $script:runtime = @{}
+    }
+
     Write-Verbose "Default configuration initialized"
     Write-Log -Level "INFO" -Message "Default configuration initialized" -Details @{
         "batchFilePath" = $script:config.batchFilePath
         "configIniPath" = $script:config.configIniPath
+    }
+}
+
+function Initialize-Constants {
+    [CmdletBinding()]
+    param()
+    $script:constants = @{
+        # Timing constants
+        "WAIT_SHORT" = 1
+        "WAIT_MEDIUM" = 3
+        "WAIT_LONG" = 5
+        "WAIT_VERY_LONG" = 10
+        "MAX_LAUNCH_WAIT" = 60
+        "MAX_TESTER_WAIT" = 30
+        "PROGRESS_CHECK_INTERVAL" = 5
+        "MAX_NO_PROGRESS_INTERVALS" = 30
+        "SYSTEM_CHECK_INTERVAL" = 60
+
+        # Window constants
+        "WINDOW_MT5" = "MetaTrader 5"
+        "WINDOW_STRATEGY_TESTER" = "Strategy Tester"
+        "WINDOW_TESTER" = "Tester"
+        "WINDOW_SAVE_AS" = "Save As"
+        "WINDOW_CONFIRM" = "Confirm"
+        "WINDOW_SAVE" = "Save"
+
+        # Process constants
+        "PROCESS_MT5" = "terminal64.exe"
+        "PROCESS_EXPLORER" = "explorer.exe"
+
+        # Valid symbols and timeframes
+        "VALID_SYMBOLS" = @("EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCHF", "EURGBP", "EURJPY", "EURCHF", "AUDJPY", "NZDUSD", "USDCAD", "GBPJPY")
+        "VALID_TIMEFRAMES" = @("M1", "M5", "M15", "M30", "H1", "H4", "D1", "W1", "MN1")
     }
 }

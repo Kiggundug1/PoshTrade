@@ -1,0 +1,18 @@
+=== BACKTEST AUTOMATION SUMMARY ===
+
+Completed at: 2025-05-19 13:08:30
+
+Total reports generated: -1
+
+EA tested: 
+
+Symbol tested: EURUSD
+
+Timeframe tested: M15
+
+=== SYSTEM PERFORMANCE ===
+
+Available memory: 1360 MB
+
+Adaptive wait multiplier: 1
+

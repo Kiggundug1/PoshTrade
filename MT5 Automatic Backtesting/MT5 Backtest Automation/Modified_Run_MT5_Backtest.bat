@@ -20,3 +20,5 @@ echo Launching PowerShell backtest automation script...
 powershell -ExecutionPolicy Bypass -File ".\Start-MT5Backtest.ps1"
 
 echo Backtest automation process initiated.
+
+pause
